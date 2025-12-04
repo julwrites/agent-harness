@@ -60,6 +60,15 @@ def finalize():
         print("Error: Failed to initialize directories.")
         sys.exit(1)
 
+    # Backup AGENTS.md
+    if os.path.exists(AGENTS_FILE):
+        backup_file = AGENTS_FILE + ".bak"
+        try:
+            shutil.copy2(AGENTS_FILE, backup_file)
+            print(f"Backed up AGENTS.md to {backup_file}")
+        except Exception as e:
+            print(f"Warning: Failed to backup AGENTS.md: {e}")
+
     # Read template
     with open(TEMPLATE_MAINTENANCE, "r") as f:
         content = f.read()
