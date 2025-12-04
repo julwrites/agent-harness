@@ -2,6 +2,7 @@
 import os
 import sys
 import shutil
+import subprocess
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
@@ -11,6 +12,16 @@ TEMPLATE_MAINTENANCE = os.path.join(REPO_ROOT, "templates", "maintenance_mode.md
 
 def check_state():
     print("Repository Analysis:")
+
+    # Check if already in maintenance mode
+    if os.path.exists(AGENTS_FILE):
+        with open(AGENTS_FILE, "r") as f:
+            content = f.read()
+        if "BOOTSTRAPPING MODE" not in content:
+            print("Status: MAINTENANCE MODE (AGENTS.md is already updated)")
+            print("To list tasks: python3 scripts/tasks.py list")
+            return
+
     files = [f for f in os.listdir(REPO_ROOT) if not f.startswith(".")]
     print(f"Files in root: {len(files)}")
 
@@ -20,14 +31,33 @@ def check_state():
         print("Status: NEW REPOSITORY (Likely)")
 
     print("\nNext Steps:")
-    print("1. Run 'python3 scripts/tasks.py create foundation \"Initial Setup\"' to track your work.")
-    print("2. Explore docs/architecture/ and docs/features/.")
-    print("3. When ready to switch to maintenance mode, run: python3 scripts/bootstrap.py finalize")
+    print("1. Run 'python3 scripts/tasks.py init' to scaffold directories.")
+    print("2. Run 'python3 scripts/tasks.py create foundation \"Initial Setup\"' to track your work.")
+    print("3. Explore docs/architecture/ and docs/features/.")
+    print("4. When ready to switch to maintenance mode, run: python3 scripts/bootstrap.py finalize")
 
 def finalize():
     print("Finalizing setup...")
     if not os.path.exists(TEMPLATE_MAINTENANCE):
         print(f"Error: Template {TEMPLATE_MAINTENANCE} not found.")
+        sys.exit(1)
+
+    # Safety check
+    if os.path.exists(AGENTS_FILE):
+        with open(AGENTS_FILE, "r") as f:
+            content = f.read()
+        if "BOOTSTRAPPING MODE" not in content and "--force" not in sys.argv:
+            print("Error: AGENTS.md does not appear to be in bootstrapping mode.")
+            print("Use --force to overwrite anyway.")
+            sys.exit(1)
+
+    # Ensure init is run
+    print("Ensuring directory structure...")
+    tasks_script = os.path.join(SCRIPT_DIR, "tasks.py")
+    try:
+        subprocess.check_call([sys.executable, tasks_script, "init"])
+    except subprocess.CalledProcessError:
+        print("Error: Failed to initialize directories.")
         sys.exit(1)
 
     # Read template
