@@ -185,44 +185,19 @@ Place the task in the appropriate directory:
 - **migration/**: Refactoring, package migrations
 - **features/**: End-to-end feature implementation
 
-### Step 2: Generate a Unique Task ID
+### Step 2: Generate and Create Task
 
-Follow the pattern: `[CATEGORY]-[NNN]`
+Use the provided script to generate the task file with a unique ID:
 
-Check existing task IDs in the category:
 ```bash
-ls docs/tasks/[category]/*.md | grep -o '[A-Z]*-[0-9]*'
+# Usage: python3 scripts/tasks.py create [category] "Title" --desc "Description"
+python3 scripts/tasks.py create foundation "Initial Setup"
 ```
 
-Use the next available number.
-
-### Step 3: Create Initial Document
-
-```markdown
-# Task: [Descriptive Title]
-
-## Task Information
-- **Task ID**: CATEGORY-NNN
-- **Status**: pending
-- **Priority**: [critical|high|medium|low]
-- **Phase**: [1-5]
-- **Estimated Effort**: [X days]
-- **Dependencies**: [List dependencies or "None"]
-
-## Task Details
-
-### Description
-[What needs to be done]
-
-### Acceptance Criteria
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-
----
-
-*Created: 2025-MM-DD*
-*Status: pending*
-```
+This will automatically:
+1. Find the next available ID (e.g., FOUNDATION-001).
+2. Create the file `docs/tasks/foundation/FOUNDATION-001-initial-setup.md`.
+3. Populate it with the standard template.
 
 ## Updating Task Documents
 
@@ -583,17 +558,19 @@ Use this checklist when creating or updating task documents:
 
 ## Tools and Automation
 
-### Checking Task Status
+### Managing Tasks
+
+Use the `scripts/tasks.py` script to manage tasks.
 
 ```bash
-# List all pending tasks
-grep -r "Status**: pending" docs/tasks/
+# Create a new task
+python3 scripts/tasks.py create [category] "Task Title"
 
-# List blocked tasks
-grep -r "Status**: blocked\|wip_blocked" docs/tasks/
+# List tasks
+python3 scripts/tasks.py list
 
-# List completed tasks
-grep -r "Status**: completed" docs/tasks/
+# List pending tasks
+python3 scripts/tasks.py list --status pending
 ```
 
 ### Validating Task Documents
