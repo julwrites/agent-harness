@@ -15,22 +15,24 @@ Run `python3 scripts/bootstrap.py` to analyze the repository.
 ## Step 2: Execution Strategy
 
 ### Scenario A: New Repository
-1.  **Interview**: Ask the user what they want to build (stack, features, goals).
-2.  **Plan**: Propose a high-level architecture.
-3.  **Document**:
+1.  **Initialize**: Run `python3 scripts/tasks.py init` to generate directory structure.
+2.  **Interview**: Ask the user what they want to build (stack, features, goals).
+3.  **Plan**: Propose a high-level architecture.
+4.  **Document**:
     *   Fill in `docs/architecture/README.md` and `docs/features/README.md`.
     *   Create the first task: `python3 scripts/tasks.py create foundation "Initial Project Setup"`
-4.  **Scaffold Project**: Generate a `.gitignore` suitable for the chosen stack.
-5.  **Proceed to Step 3 (Finalize).**
+5.  **Scaffold Project**: Generate a `.gitignore` suitable for the chosen stack.
+6.  **Proceed to Step 3 (Finalize).**
 
 ### Scenario B: Existing Repository
-1.  **Analyze**: Read the code to understand the current architecture.
-2.  **Document**:
+1.  **Initialize**: Run `python3 scripts/tasks.py init` to generate directory structure.
+2.  **Analyze**: Read the code to understand the current architecture.
+3.  **Document**:
     *   Update `docs/architecture/README.md` reflecting the *current* architecture.
     *   Update `docs/features/README.md` listing implemented features.
-3.  **Identify Tasks**:
+4.  **Identify Tasks**:
     *   If you find TODOs or bugs, create tasks: `python3 scripts/tasks.py create migration "Fix TODOs"`
-4.  **Proceed to Step 3 (Finalize).**
+5.  **Proceed to Step 3 (Finalize).**
 
 ## Step 3: Finalize & Switch to Maintenance Mode
 Once the documentation structure is populated and the initial plan is set:
