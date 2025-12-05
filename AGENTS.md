@@ -9,6 +9,12 @@ This repository includes scripts to assist you:
 - `scripts/tasks.py`: Create and list tasks.
 - `scripts/bootstrap.py`: Analyze state and switch modes.
 
+## Agent Interoperability
+This repository provides tools for AI agents (Claude Code, Cursor, etc.):
+- **Claude Skill**: `.claude/skills/task_manager/`
+- **Tool Definitions**: `docs/interop/tool_definitions.json` (JSON Schema)
+- **Execution Wrapper**: `scripts/tasks` (Recommended entry point)
+
 ## Step 1: Detect Repository State
 Run `python3 scripts/bootstrap.py` to analyze the repository.
 
