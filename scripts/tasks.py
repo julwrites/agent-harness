@@ -4,6 +4,8 @@ import sys
 import argparse
 import re
 import json
+import random
+import string
 from datetime import datetime
 
 # Determine the root directory of the repo
@@ -61,7 +63,8 @@ def init_docs():
 def generate_task_id(category):
     """Generates a timestamp-based ID to avoid collisions."""
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    return f"{category.upper()}-{timestamp}"
+    suffix = ''.join(random.choices(string.ascii_uppercase, k=3))
+    return f"{category.upper()}-{timestamp}-{suffix}"
 
 def extract_frontmatter(content):
     """Extracts YAML frontmatter if present."""
@@ -314,8 +317,10 @@ def update_task_status(task_id, new_status, output_format="text"):
                     new_lines.append(line)
                     continue
 
-            if in_fm and line.startswith("status:"):
-                new_lines.append(f"status: {new_status}")
+            match = re.match(r"^(\s*)status:", line)
+            if in_fm and match:
+                indent = match.group(1)
+                new_lines.append(f"{indent}status: {new_status}")
                 updated = True
             else:
                 new_lines.append(line)
@@ -463,6 +468,10 @@ def main():
     # Migrate
     subparsers.add_parser("migrate", parents=[parent_parser], help="Migrate legacy tasks to new format")
 
+    # Complete
+    complete_parser = subparsers.add_parser("complete", parents=[parent_parser], help="Mark a task as completed")
+    complete_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
+
     args = parser.parse_args()
 
     # Default format to text if not present (e.g. init doesn't have it)
@@ -484,6 +493,8 @@ def main():
         get_context(output_format=fmt)
     elif args.command == "migrate":
         migrate_all()
+    elif args.command == "complete":
+        update_task_status(args.task_id, "completed", output_format=fmt)
     else:
         parser.print_help()
 
