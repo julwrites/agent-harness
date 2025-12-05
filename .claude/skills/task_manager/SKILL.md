@@ -26,7 +26,7 @@ Command: `./scripts/tasks show <task_id> [--format json]`
 ### Update Task Status
 Update the status of a task.
 Command: `./scripts/tasks update <task_id> <status> [--format json]`
-Valid statuses: pending, in_progress, wip_blocked, completed, blocked, cancelled, deferred
+Valid statuses: pending, in_progress, wip_blocked, review_requested, verified, completed, blocked, cancelled, deferred
 
 ### Get Context
 Show currently in-progress tasks.

@@ -36,7 +36,7 @@
           "properties": {
             "status": {
               "type": "string",
-              "enum": ["pending", "in_progress", "wip_blocked", "completed", "blocked", "cancelled", "deferred"],
+              "enum": ["pending", "in_progress", "wip_blocked", "review_requested", "verified", "completed", "blocked", "cancelled", "deferred"],
               "description": "Filter by task status."
             },
             "category": {
@@ -58,11 +58,11 @@
           "properties": {
             "task_id": {
               "type": "string",
-              "description": "The ID of the task (e.g., FOUNDATION-001)."
+              "description": "The ID of the task (e.g., FOUNDATION-20230521-120000)."
             },
             "status": {
               "type": "string",
-              "enum": ["pending", "in_progress", "wip_blocked", "completed", "blocked", "cancelled", "deferred"],
+              "enum": ["pending", "in_progress", "wip_blocked", "review_requested", "verified", "completed", "blocked", "cancelled", "deferred"],
               "description": "The new status of the task."
             }
           },
