@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 import re
+import json
 from datetime import datetime
 
 # Determine the root directory of the repo
@@ -76,9 +77,34 @@ def get_next_id(category):
 
     return max_id + 1
 
-def create_task(category, title, description):
+def parse_task_content(content, filepath=None):
+    """Parses task markdown content into a dictionary."""
+    id_match = re.search(r"\*\*Task ID\*\*: ([\w-]+)", content)
+    status_match = re.search(r"\*\*Status\*\*: ([\w_]+)", content)
+    title_match = re.search(r"# Task: (.+)", content)
+    priority_match = re.search(r"\*\*Priority\*\*: ([\w]+)", content)
+
+    task_id = id_match.group(1) if id_match else "unknown"
+    status = status_match.group(1) if status_match else "unknown"
+    title = title_match.group(1).strip() if title_match else "No Title"
+    priority = priority_match.group(1) if priority_match else "unknown"
+
+    return {
+        "id": task_id,
+        "status": status,
+        "title": title,
+        "priority": priority,
+        "filepath": filepath,
+        "content": content
+    }
+
+def create_task(category, title, description, output_format="text"):
     if category not in CATEGORIES:
-        print(f"Error: Category '{category}' not found. Available: {', '.join(CATEGORIES)}")
+        msg = f"Error: Category '{category}' not found. Available: {', '.join(CATEGORIES)}"
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
         sys.exit(1)
 
     next_num = get_next_id(category)
@@ -123,7 +149,15 @@ def create_task(category, title, description):
     with open(filepath, "w") as f:
         f.write(filled_content)
 
-    print(f"Created task: {filepath}")
+    if output_format == "json":
+        print(json.dumps({
+            "id": task_id,
+            "title": title,
+            "filepath": filepath,
+            "status": "pending"
+        }))
+    else:
+        print(f"Created task: {filepath}")
 
 def find_task_file(task_id):
     """Finds the file path for a given task ID."""
@@ -134,40 +168,73 @@ def find_task_file(task_id):
                 return os.path.join(root, file)
     return None
 
-def show_task(task_id):
+def show_task(task_id, output_format="text"):
     filepath = find_task_file(task_id)
     if not filepath:
-        print(f"Error: Task ID {task_id} not found.")
+        msg = f"Error: Task ID {task_id} not found."
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
         sys.exit(1)
 
     try:
         with open(filepath, "r") as f:
-            print(f.read())
+            content = f.read()
+
+        if output_format == "json":
+            task_data = parse_task_content(content, filepath)
+            print(json.dumps(task_data))
+        else:
+            print(content)
     except Exception as e:
-        print(f"Error reading file: {e}")
+        msg = f"Error reading file: {e}"
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
         sys.exit(1)
 
-def delete_task(task_id):
+def delete_task(task_id, output_format="text"):
     filepath = find_task_file(task_id)
     if not filepath:
-        print(f"Error: Task ID {task_id} not found.")
+        msg = f"Error: Task ID {task_id} not found."
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
         sys.exit(1)
 
     try:
         os.remove(filepath)
-        print(f"Deleted task: {task_id}")
+        if output_format == "json":
+            print(json.dumps({"success": True, "id": task_id, "message": "Deleted task"}))
+        else:
+            print(f"Deleted task: {task_id}")
     except Exception as e:
-        print(f"Error deleting file: {e}")
+        msg = f"Error deleting file: {e}"
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
         sys.exit(1)
 
-def update_task_status(task_id, new_status):
+def update_task_status(task_id, new_status, output_format="text"):
     if new_status not in VALID_STATUSES:
-         print(f"Error: Invalid status '{new_status}'. Valid statuses: {', '.join(VALID_STATUSES)}")
+         msg = f"Error: Invalid status '{new_status}'. Valid statuses: {', '.join(VALID_STATUSES)}"
+         if output_format == "json":
+            print(json.dumps({"error": msg}))
+         else:
+            print(msg)
          sys.exit(1)
 
     filepath = find_task_file(task_id)
     if not filepath:
-        print(f"Error: Task ID {task_id} not found.")
+        msg = f"Error: Task ID {task_id} not found."
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
         sys.exit(1)
 
     with open(filepath, "r") as f:
@@ -177,7 +244,11 @@ def update_task_status(task_id, new_status):
     # Match any content after the colon until newline
     status_pattern = r"(\*\*Status\*\*: )([^\n]+)"
     if not re.search(status_pattern, content):
-         print(f"Error: Could not find status field in {filepath}")
+         msg = f"Error: Could not find status field in {filepath}"
+         if output_format == "json":
+            print(json.dumps({"error": msg}))
+         else:
+            print(msg)
          sys.exit(1)
 
     new_content = re.sub(status_pattern, f"\\g<1>{new_status}", content)
@@ -190,13 +261,14 @@ def update_task_status(task_id, new_status):
     with open(filepath, "w") as f:
         f.write(new_content)
 
-    print(f"Updated {task_id} status to {new_status}")
+    if output_format == "json":
+        print(json.dumps({"success": True, "id": task_id, "status": new_status}))
+    else:
+        print(f"Updated {task_id} status to {new_status}")
 
 
-def list_tasks(status=None, category=None):
-    # Adjust width for ID to handle longer IDs
-    print(f"{'ID':<25} {'Status':<15} {'Title'}")
-    print("-" * 65)
+def list_tasks(status=None, category=None, output_format="text"):
+    tasks = []
 
     for root, dirs, files in os.walk(DOCS_DIR):
         # Filter by category if provided
@@ -214,79 +286,100 @@ def list_tasks(status=None, category=None):
                 with open(path, "r") as f:
                     content = f.read()
             except Exception as e:
-                print(f"Error reading {path}: {e}")
+                if output_format == "text":
+                    print(f"Error reading {path}: {e}")
                 continue
 
-            # Extract info
-            id_match = re.search(r"\*\*Task ID\*\*: ([\w-]+)", content)
-            status_match = re.search(r"\*\*Status\*\*: ([\w_]+)", content)
-            title_match = re.search(r"# Task: (.+)", content)
+            # Parse content
+            task = parse_task_content(content, path)
 
-            if id_match:
-                t_id = id_match.group(1)
-                t_status = status_match.group(1) if status_match else "unknown"
-                t_title = title_match.group(1).strip() if title_match else "No Title"
+            # Skip files that don't look like tasks (no ID)
+            if task["id"] == "unknown":
+                continue
 
-                if status and status.lower() != t_status.lower():
-                    continue
+            if status and status.lower() != task["status"].lower():
+                continue
 
-                print(f"{t_id:<25} {t_status:<15} {t_title}")
+            tasks.append(task)
 
-def get_context():
+    if output_format == "json":
+        # Remove 'content' and 'filepath' for cleaner list output, or keep them?
+        # User requested JSON output, usually a summary list is good.
+        # But for full machine readability, maybe 'filepath' is useful.
+        # I'll exclude 'content' to keep it small, include 'filepath'.
+        summary = [{k: v for k, v in t.items() if k != 'content'} for t in tasks]
+        print(json.dumps(summary))
+    else:
+        # Adjust width for ID to handle longer IDs
+        print(f"{'ID':<25} {'Status':<15} {'Title'}")
+        print("-" * 65)
+        for t in tasks:
+            print(f"{t['id']:<25} {t['status']:<15} {t['title']}")
+
+def get_context(output_format="text"):
     """Lists tasks that are currently in progress."""
-    print("Current Context (in_progress):")
-    list_tasks(status="in_progress")
+    if output_format == "text":
+        print("Current Context (in_progress):")
+    list_tasks(status="in_progress", output_format=output_format)
 
 def main():
     parser = argparse.ArgumentParser(description="Manage development tasks")
+
+    # Common argument for format
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
+
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Init
     subparsers.add_parser("init", help="Initialize documentation structure")
 
     # Create
-    create_parser = subparsers.add_parser("create", help="Create a new task")
+    create_parser = subparsers.add_parser("create", parents=[parent_parser], help="Create a new task")
     create_parser.add_argument("category", choices=CATEGORIES, help="Task category")
     create_parser.add_argument("title", help="Task title")
     create_parser.add_argument("--desc", default="To be determined", help="Task description")
 
     # List
-    list_parser = subparsers.add_parser("list", help="List tasks")
+    list_parser = subparsers.add_parser("list", parents=[parent_parser], help="List tasks")
     list_parser.add_argument("--status", help="Filter by status")
     list_parser.add_argument("--category", choices=CATEGORIES, help="Filter by category")
 
     # Show
-    show_parser = subparsers.add_parser("show", help="Show task details")
+    show_parser = subparsers.add_parser("show", parents=[parent_parser], help="Show task details")
     show_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
 
     # Update
-    update_parser = subparsers.add_parser("update", help="Update task status")
+    update_parser = subparsers.add_parser("update", parents=[parent_parser], help="Update task status")
     update_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
     update_parser.add_argument("status", help=f"New status: {', '.join(VALID_STATUSES)}")
 
     # Delete
-    delete_parser = subparsers.add_parser("delete", help="Delete a task")
+    delete_parser = subparsers.add_parser("delete", parents=[parent_parser], help="Delete a task")
     delete_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
 
     # Context
-    subparsers.add_parser("context", help="Show current context (in_progress tasks)")
+    subparsers.add_parser("context", parents=[parent_parser], help="Show current context (in_progress tasks)")
 
     args = parser.parse_args()
 
+    # Default format to text if not present (e.g. init doesn't have it)
+    fmt = getattr(args, "format", "text")
+
     if args.command == "create":
-        create_task(args.category, args.title, args.desc)
+        create_task(args.category, args.title, args.desc, output_format=fmt)
     elif args.command == "list":
-        list_tasks(args.status, args.category)
+        list_tasks(args.status, args.category, output_format=fmt)
     elif args.command == "init":
         init_docs()
     elif args.command == "show":
-        show_task(args.task_id)
+        show_task(args.task_id, output_format=fmt)
     elif args.command == "delete":
-        delete_task(args.task_id)
+        delete_task(args.task_id, output_format=fmt)
     elif args.command == "update":
-        update_task_status(args.task_id, args.status)
+        update_task_status(args.task_id, args.status, output_format=fmt)
     elif args.command == "context":
-        get_context()
+        get_context(output_format=fmt)
     else:
         parser.print_help()
 

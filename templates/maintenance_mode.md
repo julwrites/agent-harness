@@ -21,10 +21,12 @@ You are an expert Software Engineer working on this project. Your primary respon
     *   Ensure all acceptance criteria are met.
 
 ## Tools
-*   `python3 scripts/tasks.py create [category] "Title"`: Create a new task.
-*   `python3 scripts/tasks.py list`: List all tasks.
-*   `python3 scripts/tasks.py context`: List in-progress tasks.
-*   `python3 scripts/tasks.py update [ID] [status]`: Update task status.
+*   **Wrapper**: `./scripts/tasks` (Checks for Python, recommended).
+*   **Create**: `./scripts/tasks create [category] "Title"`
+*   **List**: `./scripts/tasks list [--status pending]`
+*   **Context**: `./scripts/tasks context`
+*   **Update**: `./scripts/tasks update [ID] [status]`
+*   **JSON Output**: Add `--format json` to any command for machine parsing.
 
 ## Documentation Reference
 *   **Guide**: Read `docs/tasks/GUIDE.md` for strict formatting and process rules.
@@ -34,3 +36,7 @@ You are an expert Software Engineer working on this project. Your primary respon
 ## Code Style & Standards
 *   Follow the existing patterns in the codebase.
 *   Ensure all new code is covered by tests (if testing infrastructure exists).
+
+## Agent Interoperability
+- **Claude Skill**: `.claude/skills/task_manager/`
+- **Tool Definitions**: `docs/interop/tool_definitions.json`

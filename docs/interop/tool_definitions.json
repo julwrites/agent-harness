@@ -1,0 +1,102 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "task_create",
+        "description": "Create a new development task.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": ["foundation", "infrastructure", "domain", "presentation", "migration", "features", "testing"],
+              "description": "The category of the task."
+            },
+            "title": {
+              "type": "string",
+              "description": "The title of the task."
+            },
+            "description": {
+              "type": "string",
+              "description": "Detailed description of the task."
+            }
+          },
+          "required": ["category", "title"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "task_list",
+        "description": "List existing tasks, optionally filtered by status or category.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["pending", "in_progress", "wip_blocked", "completed", "blocked", "cancelled", "deferred"],
+              "description": "Filter by task status."
+            },
+            "category": {
+              "type": "string",
+              "enum": ["foundation", "infrastructure", "domain", "presentation", "migration", "features", "testing"],
+              "description": "Filter by task category."
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "task_update",
+        "description": "Update the status of an existing task.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "task_id": {
+              "type": "string",
+              "description": "The ID of the task (e.g., FOUNDATION-001)."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["pending", "in_progress", "wip_blocked", "completed", "blocked", "cancelled", "deferred"],
+              "description": "The new status of the task."
+            }
+          },
+          "required": ["task_id", "status"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "task_show",
+        "description": "Show the details of a specific task.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "task_id": {
+              "type": "string",
+              "description": "The ID of the task."
+            }
+          },
+          "required": ["task_id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "task_context",
+        "description": "Show tasks that are currently in progress.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    }
+  ]
+}
