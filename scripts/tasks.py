@@ -22,6 +22,16 @@ CATEGORIES = [
     "testing",
 ]
 
+VALID_STATUSES = [
+    "pending",
+    "in_progress",
+    "wip_blocked",
+    "completed",
+    "blocked",
+    "cancelled",
+    "deferred"
+]
+
 def init_docs():
     """Scaffolds the documentation directory structure."""
     print("Initializing documentation structure...")
@@ -124,7 +134,37 @@ def find_task_file(task_id):
                 return os.path.join(root, file)
     return None
 
+def show_task(task_id):
+    filepath = find_task_file(task_id)
+    if not filepath:
+        print(f"Error: Task ID {task_id} not found.")
+        sys.exit(1)
+
+    try:
+        with open(filepath, "r") as f:
+            print(f.read())
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        sys.exit(1)
+
+def delete_task(task_id):
+    filepath = find_task_file(task_id)
+    if not filepath:
+        print(f"Error: Task ID {task_id} not found.")
+        sys.exit(1)
+
+    try:
+        os.remove(filepath)
+        print(f"Deleted task: {task_id}")
+    except Exception as e:
+        print(f"Error deleting file: {e}")
+        sys.exit(1)
+
 def update_task_status(task_id, new_status):
+    if new_status not in VALID_STATUSES:
+         print(f"Error: Invalid status '{new_status}'. Valid statuses: {', '.join(VALID_STATUSES)}")
+         sys.exit(1)
+
     filepath = find_task_file(task_id)
     if not filepath:
         print(f"Error: Task ID {task_id} not found.")
@@ -134,7 +174,8 @@ def update_task_status(task_id, new_status):
         content = f.read()
 
     # Regex to find status line: - **Status**: pending
-    status_pattern = r"(\*\*Status\*\*: )(\w+)"
+    # Match any content after the colon until newline
+    status_pattern = r"(\*\*Status\*\*: )([^\n]+)"
     if not re.search(status_pattern, content):
          print(f"Error: Could not find status field in {filepath}")
          sys.exit(1)
@@ -143,7 +184,7 @@ def update_task_status(task_id, new_status):
 
     # Also update metadata footer if present
     # *Status: pending*
-    footer_pattern = r"(\*Status: )([\w\s-]+)(\*)"
+    footer_pattern = r"(\*Status: )([^\n\*]+)(\*)"
     new_content = re.sub(footer_pattern, f"\\g<1>{new_status}\\g<3>", new_content)
 
     with open(filepath, "w") as f:
@@ -153,8 +194,9 @@ def update_task_status(task_id, new_status):
 
 
 def list_tasks(status=None, category=None):
-    print(f"{'ID':<20} {'Status':<15} {'Title'}")
-    print("-" * 60)
+    # Adjust width for ID to handle longer IDs
+    print(f"{'ID':<25} {'Status':<15} {'Title'}")
+    print("-" * 65)
 
     for root, dirs, files in os.walk(DOCS_DIR):
         # Filter by category if provided
@@ -188,7 +230,7 @@ def list_tasks(status=None, category=None):
                 if status and status.lower() != t_status.lower():
                     continue
 
-                print(f"{t_id:<20} {t_status:<15} {t_title}")
+                print(f"{t_id:<25} {t_status:<15} {t_title}")
 
 def get_context():
     """Lists tasks that are currently in progress."""
@@ -213,10 +255,18 @@ def main():
     list_parser.add_argument("--status", help="Filter by status")
     list_parser.add_argument("--category", choices=CATEGORIES, help="Filter by category")
 
+    # Show
+    show_parser = subparsers.add_parser("show", help="Show task details")
+    show_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
+
     # Update
     update_parser = subparsers.add_parser("update", help="Update task status")
     update_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
-    update_parser.add_argument("status", help="New status (pending, in_progress, completed, etc.)")
+    update_parser.add_argument("status", help=f"New status: {', '.join(VALID_STATUSES)}")
+
+    # Delete
+    delete_parser = subparsers.add_parser("delete", help="Delete a task")
+    delete_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
 
     # Context
     subparsers.add_parser("context", help="Show current context (in_progress tasks)")
@@ -229,6 +279,10 @@ def main():
         list_tasks(args.status, args.category)
     elif args.command == "init":
         init_docs()
+    elif args.command == "show":
+        show_task(args.task_id)
+    elif args.command == "delete":
+        delete_task(args.task_id)
     elif args.command == "update":
         update_task_status(args.task_id, args.status)
     elif args.command == "context":
