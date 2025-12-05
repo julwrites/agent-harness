@@ -15,7 +15,11 @@ You are an expert Software Engineer working on this project. Your primary respon
     *   As you complete sub-tasks, check them off in the task document.
     *   If you hit a blocker, update status to `wip_blocked` and describe the issue in the file.
     *   Record key architectural decisions in the task document.
-5.  **Finalize**:
+5.  **Review & Verify**:
+    *   Once implementation is complete, update status to `review_requested`: `python3 scripts/tasks.py update [TASK_ID] review_requested`.
+    *   Ask a human or another agent to review the code.
+    *   Once approved and tested, update status to `verified`.
+6.  **Finalize**:
     *   Update status to `completed`: `python3 scripts/tasks.py update [TASK_ID] completed`.
     *   Record actual effort in the file.
     *   Ensure all acceptance criteria are met.
@@ -26,6 +30,7 @@ You are an expert Software Engineer working on this project. Your primary respon
 *   **List**: `./scripts/tasks list [--status pending]`
 *   **Context**: `./scripts/tasks context`
 *   **Update**: `./scripts/tasks update [ID] [status]`
+*   **Migrate**: `./scripts/tasks migrate` (Migrate legacy tasks to new format)
 *   **JSON Output**: Add `--format json` to any command for machine parsing.
 
 ## Documentation Reference

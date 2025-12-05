@@ -27,6 +27,8 @@ VALID_STATUSES = [
     "pending",
     "in_progress",
     "wip_blocked",
+    "review_requested",
+    "verified",
     "completed",
     "blocked",
     "cancelled",
@@ -56,29 +58,42 @@ def init_docs():
 
     print(f"Created directories in {os.path.join(REPO_ROOT, 'docs')}")
 
-def get_next_id(category):
-    category_dir = os.path.join(DOCS_DIR, category)
-    if not os.path.exists(category_dir):
-        return 1
+def generate_task_id(category):
+    """Generates a timestamp-based ID to avoid collisions."""
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return f"{category.upper()}-{timestamp}"
 
-    files = os.listdir(category_dir)
-    max_id = 0
-    pattern = re.compile(f"{category.upper()}-(\\d+)")
-
-    for f in files:
-        if not f.endswith(".md"):
-            continue
-        # Search in filename
-        match = pattern.search(f.upper())
-        if match:
-            num = int(match.group(1))
-            if num > max_id:
-                max_id = num
-
-    return max_id + 1
+def extract_frontmatter(content):
+    """Extracts YAML frontmatter if present."""
+    if content.startswith("---\n"):
+        end_idx = content.find("\n---\n", 4)
+        if end_idx != -1:
+            yaml_block = content[4:end_idx]
+            body = content[end_idx+5:]
+            data = {}
+            for line in yaml_block.splitlines():
+                if ":" in line:
+                    key, val = line.split(":", 1)
+                    data[key.strip()] = val.strip()
+            return data, body
+    return None, content
 
 def parse_task_content(content, filepath=None):
     """Parses task markdown content into a dictionary."""
+
+    # Try Frontmatter first
+    frontmatter, body = extract_frontmatter(content)
+    if frontmatter:
+        return {
+            "id": frontmatter.get("id", "unknown"),
+            "status": frontmatter.get("status", "unknown"),
+            "title": frontmatter.get("title", "No Title"),
+            "priority": frontmatter.get("priority", "medium"),
+            "filepath": filepath,
+            "content": content
+        }
+
+    # Fallback to Legacy Regex Parsing
     id_match = re.search(r"\*\*Task ID\*\*: ([\w-]+)", content)
     status_match = re.search(r"\*\*Status\*\*: ([\w_]+)", content)
     title_match = re.search(r"# Task: (.+)", content)
@@ -107,8 +122,7 @@ def create_task(category, title, description, output_format="text"):
             print(msg)
         sys.exit(1)
 
-    next_num = get_next_id(category)
-    task_id = f"{category.upper()}-{next_num:03d}"
+    task_id = generate_task_id(category)
 
     slug = title.lower().replace(" ", "-")
     # Sanitize slug
@@ -116,38 +130,24 @@ def create_task(category, title, description, output_format="text"):
     filename = f"{task_id}-{slug}.md"
     filepath = os.path.join(DOCS_DIR, category, filename)
 
-    template_path = os.path.join(TEMPLATES_DIR, "task.md")
-    if os.path.exists(template_path):
-        with open(template_path, "r") as f:
-            content = f.read()
-    else:
-        # Fallback template
-        content = """# Task: {title}
-
-## Task Information
-- **Task ID**: {task_id}
-- **Status**: pending
-- **Priority**: medium
-- **Dependencies**: None
-
-## Task Details
-{description}
-
+    # New YAML Frontmatter Format
+    content = f"""---
+id: {task_id}
+status: pending
+title: {title}
+priority: medium
+created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+category: {category}
 ---
-*Created: {date}*
-*Status: pending*
-"""
 
-    filled_content = content.format(
-        title=title,
-        task_id=task_id,
-        description=description,
-        date=datetime.now().strftime("%Y-%m-%d")
-    )
+# {title}
+
+{description}
+"""
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, "w") as f:
-        f.write(filled_content)
+        f.write(content)
 
     if output_format == "json":
         print(json.dumps({
@@ -164,6 +164,9 @@ def find_task_file(task_id):
     task_id = task_id.upper()
     for root, _, files in os.walk(DOCS_DIR):
         for file in files:
+            # Match strictly on ID at start of filename or substring
+            # New ID: FOUNDATION-2023...
+            # Old ID: FOUNDATION-001
             if file.startswith(task_id) and file.endswith(".md"):
                 return os.path.join(root, file)
     return None
@@ -219,6 +222,56 @@ def delete_task(task_id, output_format="text"):
             print(msg)
         sys.exit(1)
 
+def migrate_to_frontmatter(content, task_data):
+    """Converts legacy content to Frontmatter format."""
+    # Strip the header section from legacy content
+    # Look for "## Task Details" or just take the body after metadata
+
+    # Simple heuristic: remove everything before "## Task Details" or similar
+    body = content
+    if "## Task Details" in content:
+        parts = content.split("## Task Details")
+        if len(parts) > 1:
+            body = parts[1].strip()
+    else:
+        # If we can't cleanly separate, just keep it all but wrapped
+        # But legacy has title in H1.
+        pass
+
+    # Better approach: Just strip the known metadata lines?
+    # No, that's messy.
+    # Let's just create a new file structure.
+
+    # Try to find the description.
+    # Legacy:
+    # # Task: Title
+    # ## Task Information
+    # ...
+    # ## Task Details
+    # Description...
+    # ---
+    # *Created...*
+
+    description = body
+    # Remove footer
+    if "*Created:" in description:
+        description = description.split("---")[0].strip()
+
+    new_content = f"""---
+id: {task_data['id']}
+status: {task_data['status']}
+title: {task_data['title']}
+priority: {task_data['priority']}
+created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+category: unknown
+---
+
+# {task_data['title']}
+
+{description}
+"""
+    return new_content
+
 def update_task_status(task_id, new_status, output_format="text"):
     if new_status not in VALID_STATUSES:
          msg = f"Error: Invalid status '{new_status}'. Valid statuses: {', '.join(VALID_STATUSES)}"
@@ -240,23 +293,43 @@ def update_task_status(task_id, new_status, output_format="text"):
     with open(filepath, "r") as f:
         content = f.read()
 
-    # Regex to find status line: - **Status**: pending
-    # Match any content after the colon until newline
-    status_pattern = r"(\*\*Status\*\*: )([^\n]+)"
-    if not re.search(status_pattern, content):
-         msg = f"Error: Could not find status field in {filepath}"
-         if output_format == "json":
-            print(json.dumps({"error": msg}))
-         else:
-            print(msg)
-         sys.exit(1)
+    frontmatter, body = extract_frontmatter(content)
 
-    new_content = re.sub(status_pattern, f"\\g<1>{new_status}", content)
+    if frontmatter:
+        # Update Frontmatter
+        lines = content.splitlines()
+        new_lines = []
+        in_fm = False
+        updated = False
+        for line in lines:
+            if line.strip() == "---":
+                if not in_fm:
+                    in_fm = True
+                    new_lines.append(line)
+                    continue
+                else:
+                    in_fm = False
+                    if not updated: # Should have been updated
+                        pass
+                    new_lines.append(line)
+                    continue
 
-    # Also update metadata footer if present
-    # *Status: pending*
-    footer_pattern = r"(\*Status: )([^\n\*]+)(\*)"
-    new_content = re.sub(footer_pattern, f"\\g<1>{new_status}\\g<3>", new_content)
+            if in_fm and line.startswith("status:"):
+                new_lines.append(f"status: {new_status}")
+                updated = True
+            else:
+                new_lines.append(line)
+
+        new_content = "\n".join(new_lines) + "\n"
+
+    else:
+        # Legacy Format: Migrate on Update?
+        # Yes, let's migrate.
+        task_data = parse_task_content(content, filepath)
+        task_data['status'] = new_status # Set new status
+        new_content = migrate_to_frontmatter(content, task_data)
+        if output_format == "text":
+            print(f"Migrated task {task_id} to new format.")
 
     with open(filepath, "w") as f:
         f.write(new_content)
@@ -303,24 +376,50 @@ def list_tasks(status=None, category=None, output_format="text"):
             tasks.append(task)
 
     if output_format == "json":
-        # Remove 'content' and 'filepath' for cleaner list output, or keep them?
-        # User requested JSON output, usually a summary list is good.
-        # But for full machine readability, maybe 'filepath' is useful.
-        # I'll exclude 'content' to keep it small, include 'filepath'.
         summary = [{k: v for k, v in t.items() if k != 'content'} for t in tasks]
         print(json.dumps(summary))
     else:
         # Adjust width for ID to handle longer IDs
-        print(f"{'ID':<25} {'Status':<15} {'Title'}")
-        print("-" * 65)
+        print(f"{'ID':<25} {'Status':<20} {'Title'}")
+        print("-" * 75)
         for t in tasks:
-            print(f"{t['id']:<25} {t['status']:<15} {t['title']}")
+            # Status width increased to accommodate 'review_requested'
+            print(f"{t['id']:<25} {t['status']:<20} {t['title']}")
 
 def get_context(output_format="text"):
     """Lists tasks that are currently in progress."""
     if output_format == "text":
         print("Current Context (in_progress):")
     list_tasks(status="in_progress", output_format=output_format)
+
+def migrate_all():
+    """Migrates all legacy tasks to Frontmatter format."""
+    print("Migrating tasks to Frontmatter format...")
+    count = 0
+    for root, dirs, files in os.walk(DOCS_DIR):
+        for file in files:
+            if not file.endswith(".md") or file in ["GUIDE.md", "README.md"]:
+                continue
+
+            path = os.path.join(root, file)
+            with open(path, "r") as f:
+                content = f.read()
+
+            if content.startswith("---\n"):
+                continue # Already migrated
+
+            task_data = parse_task_content(content, path)
+            if task_data['id'] == "unknown":
+                continue
+
+            new_content = migrate_to_frontmatter(content, task_data)
+            with open(path, "w") as f:
+                f.write(new_content)
+
+            print(f"Migrated {task_data['id']}")
+            count += 1
+
+    print(f"Migration complete. {count} tasks updated.")
 
 def main():
     parser = argparse.ArgumentParser(description="Manage development tasks")
@@ -361,6 +460,9 @@ def main():
     # Context
     subparsers.add_parser("context", parents=[parent_parser], help="Show current context (in_progress tasks)")
 
+    # Migrate
+    subparsers.add_parser("migrate", parents=[parent_parser], help="Migrate legacy tasks to new format")
+
     args = parser.parse_args()
 
     # Default format to text if not present (e.g. init doesn't have it)
@@ -380,6 +482,8 @@ def main():
         update_task_status(args.task_id, args.status, output_format=fmt)
     elif args.command == "context":
         get_context(output_format=fmt)
+    elif args.command == "migrate":
+        migrate_all()
     else:
         parser.print_help()
 
