@@ -68,18 +68,42 @@ def generate_task_id(category):
 
 def extract_frontmatter(content):
     """Extracts YAML frontmatter if present."""
-    if content.startswith("---\n"):
-        end_idx = content.find("\n---\n", 4)
-        if end_idx != -1:
-            yaml_block = content[4:end_idx]
-            body = content[end_idx+5:]
-            data = {}
-            for line in yaml_block.splitlines():
-                if ":" in line:
-                    key, val = line.split(":", 1)
-                    data[key.strip()] = val.strip()
-            return data, body
-    return None, content
+    # Check if it starts with ---
+    if not re.match(r"^\s*---\s*(\n|$)", content):
+        return None, content
+
+    # Find the second ---
+    lines = content.splitlines(keepends=True)
+    if not lines:
+        return None, content
+
+    yaml_lines = []
+    body_start_idx = -1
+
+    # Skip the first line (delimiter)
+    for i, line in enumerate(lines[1:], 1):
+        if re.match(r"^\s*---\s*(\n|$)", line):
+            body_start_idx = i + 1
+            break
+        yaml_lines.append(line)
+
+    if body_start_idx == -1:
+        # No closing delimiter found
+        return None, content
+
+    yaml_block = "".join(yaml_lines)
+    body = "".join(lines[body_start_idx:])
+
+    data = {}
+    for line in yaml_block.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" in line:
+            key, val = line.split(":", 1)
+            data[key.strip()] = val.strip()
+
+    return data, body
 
 def parse_task_content(content, filepath=None):
     """Parses task markdown content into a dictionary."""
@@ -116,7 +140,7 @@ def parse_task_content(content, filepath=None):
         "content": content
     }
 
-def create_task(category, title, description, output_format="text"):
+def create_task(category, title, description, priority="medium", status="pending", output_format="text"):
     if category not in CATEGORIES:
         msg = f"Error: Category '{category}' not found. Available: {', '.join(CATEGORIES)}"
         if output_format == "json":
@@ -136,9 +160,9 @@ def create_task(category, title, description, output_format="text"):
     # New YAML Frontmatter Format
     content = f"""---
 id: {task_id}
-status: pending
+status: {status}
 title: {title}
-priority: medium
+priority: {priority}
 created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 category: {category}
 ---
@@ -157,7 +181,8 @@ category: {category}
             "id": task_id,
             "title": title,
             "filepath": filepath,
-            "status": "pending"
+            "status": status,
+            "priority": priority
         }))
     else:
         print(f"Created task: {filepath}")
@@ -228,32 +253,12 @@ def delete_task(task_id, output_format="text"):
 def migrate_to_frontmatter(content, task_data):
     """Converts legacy content to Frontmatter format."""
     # Strip the header section from legacy content
-    # Look for "## Task Details" or just take the body after metadata
 
-    # Simple heuristic: remove everything before "## Task Details" or similar
     body = content
     if "## Task Details" in content:
         parts = content.split("## Task Details")
         if len(parts) > 1:
             body = parts[1].strip()
-    else:
-        # If we can't cleanly separate, just keep it all but wrapped
-        # But legacy has title in H1.
-        pass
-
-    # Better approach: Just strip the known metadata lines?
-    # No, that's messy.
-    # Let's just create a new file structure.
-
-    # Try to find the description.
-    # Legacy:
-    # # Task: Title
-    # ## Task Information
-    # ...
-    # ## Task Details
-    # Description...
-    # ---
-    # *Created...*
 
     description = body
     # Remove footer
@@ -304,16 +309,16 @@ def update_task_status(task_id, new_status, output_format="text"):
         new_lines = []
         in_fm = False
         updated = False
+
+        # Simple finite state machine for update
         for line in lines:
-            if line.strip() == "---":
+            if re.match(r"^\s*---\s*$", line):
                 if not in_fm:
                     in_fm = True
                     new_lines.append(line)
                     continue
                 else:
                     in_fm = False
-                    if not updated: # Should have been updated
-                        pass
                     new_lines.append(line)
                     continue
 
@@ -328,8 +333,7 @@ def update_task_status(task_id, new_status, output_format="text"):
         new_content = "\n".join(new_lines) + "\n"
 
     else:
-        # Legacy Format: Migrate on Update?
-        # Yes, let's migrate.
+        # Legacy Format: Migrate on Update
         task_data = parse_task_content(content, filepath)
         task_data['status'] = new_status # Set new status
         new_content = migrate_to_frontmatter(content, task_data)
@@ -410,8 +414,8 @@ def migrate_all():
             with open(path, "r") as f:
                 content = f.read()
 
-            if content.startswith("---\n"):
-                continue # Already migrated
+            if content.startswith("---\n") or content.startswith("--- "):
+                continue # Already migrated (simple check)
 
             task_data = parse_task_content(content, path)
             if task_data['id'] == "unknown":
@@ -443,6 +447,8 @@ def main():
     create_parser.add_argument("category", choices=CATEGORIES, help="Task category")
     create_parser.add_argument("title", help="Task title")
     create_parser.add_argument("--desc", default="To be determined", help="Task description")
+    create_parser.add_argument("--priority", default="medium", help="Task priority")
+    create_parser.add_argument("--status", choices=VALID_STATUSES, default="pending", help="Task status")
 
     # List
     list_parser = subparsers.add_parser("list", parents=[parent_parser], help="List tasks")
@@ -478,7 +484,7 @@ def main():
     fmt = getattr(args, "format", "text")
 
     if args.command == "create":
-        create_task(args.category, args.title, args.desc, output_format=fmt)
+        create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, output_format=fmt)
     elif args.command == "list":
         list_tasks(args.status, args.category, output_format=fmt)
     elif args.command == "init":
