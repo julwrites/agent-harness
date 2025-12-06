@@ -30,6 +30,11 @@ def check_state():
     else:
         print("Status: NEW REPOSITORY (Likely)")
 
+    # Check for hooks
+    hook_path = os.path.join(REPO_ROOT, ".git", "hooks", "pre-commit")
+    if not os.path.exists(hook_path):
+        print("\nTip: Run 'python3 scripts/tasks.py install-hooks' to enable safety checks.")
+
     print("\nNext Steps:")
     print("1. Run 'python3 scripts/tasks.py init' to scaffold directories.")
     print("2. Run 'python3 scripts/tasks.py create foundation \"Initial Setup\"' to track your work.")
@@ -66,6 +71,8 @@ def finalize():
         try:
             shutil.copy2(AGENTS_FILE, backup_file)
             print(f"Backed up AGENTS.md to {backup_file}")
+            print("IMPORTANT: If you added custom instructions to AGENTS.md, they are now in .bak")
+            print("Please review AGENTS.md.bak and merge any custom context into the new AGENTS.md manually.")
         except Exception as e:
             print(f"Warning: Failed to backup AGENTS.md: {e}")
 
