@@ -25,8 +25,8 @@ def check_state():
     files = [f for f in os.listdir(REPO_ROOT) if not f.startswith(".")]
     print(f"Files in root: {len(files)}")
 
-    if os.path.exists(os.path.join(REPO_ROOT, "src")) or os.path.exists(os.path.join(REPO_ROOT, "lib")):
-        print("Status: EXISTING REPOSITORY (Found src/ or lib/)")
+    if os.path.exists(os.path.join(REPO_ROOT, "src")) or os.path.exists(os.path.join(REPO_ROOT, "lib")) or os.path.exists(os.path.join(REPO_ROOT, ".git")):
+        print("Status: EXISTING REPOSITORY (Found src/, lib/, or .git/)")
     else:
         print("Status: NEW REPOSITORY (Likely)")
 
