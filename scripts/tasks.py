@@ -111,11 +111,15 @@ def parse_task_content(content, filepath=None):
     # Try Frontmatter first
     frontmatter, body = extract_frontmatter(content)
     if frontmatter:
+        deps_str = frontmatter.get("dependencies") or ""
+        deps = [d.strip() for d in deps_str.split(",") if d.strip()]
+
         return {
             "id": frontmatter.get("id", "unknown"),
             "status": frontmatter.get("status", "unknown"),
             "title": frontmatter.get("title", "No Title"),
             "priority": frontmatter.get("priority", "medium"),
+            "dependencies": deps,
             "filepath": filepath,
             "content": content
         }
@@ -136,11 +140,12 @@ def parse_task_content(content, filepath=None):
         "status": status,
         "title": title,
         "priority": priority,
+        "dependencies": [],
         "filepath": filepath,
         "content": content
     }
 
-def create_task(category, title, description, priority="medium", status="pending", output_format="text"):
+def create_task(category, title, description, priority="medium", status="pending", dependencies=None, output_format="text"):
     if category not in CATEGORIES:
         msg = f"Error: Category '{category}' not found. Available: {', '.join(CATEGORIES)}"
         if output_format == "json":
@@ -158,6 +163,10 @@ def create_task(category, title, description, priority="medium", status="pending
     filepath = os.path.join(DOCS_DIR, category, filename)
 
     # New YAML Frontmatter Format
+    deps_str = ""
+    if dependencies:
+        deps_str = ", ".join(dependencies)
+
     content = f"""---
 id: {task_id}
 status: {status}
@@ -165,6 +174,7 @@ title: {title}
 priority: {priority}
 created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 category: {category}
+dependencies: {deps_str}
 ---
 
 # {title}
@@ -476,6 +486,14 @@ def validate_all(output_format="text"):
                 if "status" in frontmatter and frontmatter["status"] not in VALID_STATUSES:
                     errors.append(f"{file}: Invalid status '{frontmatter['status']}'")
 
+                # Check 4: Dependencies exist
+                deps_str = frontmatter.get("dependencies") or ""
+                if deps_str:
+                    deps = [d.strip() for d in deps_str.split(",") if d.strip()]
+                    for dep_id in deps:
+                         if not find_task_file(dep_id):
+                             errors.append(f"{file}: Invalid dependency '{dep_id}' (task not found)")
+
             except Exception as e:
                 errors.append(f"{file}: Error reading/parsing: {str(e)}")
 
@@ -489,6 +507,64 @@ def validate_all(output_format="text"):
             for err in errors:
                 print(f" - {err}")
             sys.exit(1)
+
+def visualize_tasks(output_format="text"):
+    """Generates a Mermaid diagram of task dependencies."""
+    tasks = []
+    # Collect all tasks
+    for root, dirs, files in os.walk(DOCS_DIR):
+        for file in files:
+            if not file.endswith(".md") or file in ["GUIDE.md", "README.md"]:
+                continue
+            path = os.path.join(root, file)
+            try:
+                with open(path, "r") as f:
+                    content = f.read()
+                task = parse_task_content(content, path)
+                if task["id"] != "unknown":
+                    tasks.append(task)
+            except:
+                pass
+
+    if output_format == "json":
+        nodes = [{"id": t["id"], "title": t["title"], "status": t["status"]} for t in tasks]
+        edges = []
+        for t in tasks:
+            for dep in t.get("dependencies", []):
+                edges.append({"from": dep, "to": t["id"]})
+        print(json.dumps({"nodes": nodes, "edges": edges}))
+        return
+
+    # Mermaid Output
+    print("graph TD")
+
+    status_colors = {
+        "completed": "#90EE90",
+        "verified": "#90EE90",
+        "in_progress": "#ADD8E6",
+        "review_requested": "#FFFACD",
+        "wip_blocked": "#FFB6C1",
+        "blocked": "#FF7F7F",
+        "pending": "#D3D3D3",
+        "deferred": "#A9A9A9",
+        "cancelled": "#696969"
+    }
+
+    # Nodes
+    for t in tasks:
+        # Sanitize title for label
+        safe_title = t["title"].replace('"', '').replace('[', '').replace(']', '')
+        print(f'    {t["id"]}["{t["id"]}: {safe_title}"]')
+
+        # Style
+        color = status_colors.get(t["status"], "#FFFFFF")
+        print(f"    style {t['id']} fill:{color},stroke:#333,stroke-width:2px")
+
+    # Edges
+    for t in tasks:
+        deps = t.get("dependencies", [])
+        for dep in deps:
+            print(f"    {dep} --> {t['id']}")
 
 def install_hooks():
     """Installs the git pre-commit hook."""
@@ -533,6 +609,7 @@ def main():
     create_parser.add_argument("--desc", default="To be determined", help="Task description")
     create_parser.add_argument("--priority", default="medium", help="Task priority")
     create_parser.add_argument("--status", choices=VALID_STATUSES, default="pending", help="Task status")
+    create_parser.add_argument("--dependencies", help="Comma-separated list of task IDs this task depends on")
 
     # List
     list_parser = subparsers.add_parser("list", parents=[parent_parser], help="List tasks")
@@ -565,6 +642,9 @@ def main():
     # Validate
     subparsers.add_parser("validate", parents=[parent_parser], help="Validate task files")
 
+    # Visualize
+    subparsers.add_parser("visualize", parents=[parent_parser], help="Visualize task dependencies (Mermaid)")
+
     # Install Hooks
     subparsers.add_parser("install-hooks", parents=[parent_parser], help="Install git hooks")
 
@@ -574,7 +654,10 @@ def main():
     fmt = getattr(args, "format", "text")
 
     if args.command == "create":
-        create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, output_format=fmt)
+        deps = []
+        if args.dependencies:
+            deps = [d.strip() for d in args.dependencies.split(",") if d.strip()]
+        create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, dependencies=deps, output_format=fmt)
     elif args.command == "list":
         list_tasks(args.status, args.category, output_format=fmt)
     elif args.command == "init":
@@ -593,6 +676,8 @@ def main():
         update_task_status(args.task_id, "completed", output_format=fmt)
     elif args.command == "validate":
         validate_all(output_format=fmt)
+    elif args.command == "visualize":
+        visualize_tasks(output_format=fmt)
     elif args.command == "install-hooks":
         install_hooks()
     else:

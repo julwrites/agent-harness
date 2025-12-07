@@ -19,6 +19,10 @@ The bootstrapping system is a solid, dependency-free foundation for maintaining 
 ### 3. Documentation & Workflow
 *   **FIXED** - **Safety Warnings**: `scripts/bootstrap.py` now explicitly warns about backing up custom `AGENTS.md` content and prompts for hook installation.
 
+### 4. New Features
+*   **Implemented** - **Task Dependencies**: Added support for tracking dependencies between tasks via `dependencies` frontmatter field. Dependencies are validated and displayed.
+*   **Implemented** - **Visualization**: Added `visualize` command to generate Mermaid diagrams of task dependencies, color-coded by status.
+
 ## Remaining Critique
 
 ### 1. Documentation & Workflow
@@ -27,6 +31,5 @@ The bootstrapping system is a solid, dependency-free foundation for maintaining 
 ## Future Suggestions
 
 ### Long-term
-1.  **Task Dependencies**: Add support for tracking dependencies between tasks (e.g., "blocked_by").
-2.  **Interactive Merge**: Implement a more sophisticated `finalize` process that attempts to merge custom instructions automatically.
-3.  **Visualization**: Add a command to visualize task progress or dependencies (e.g., generating a Mermaid chart).
+1.  **Interactive Merge**: Implement a more sophisticated `finalize` process that attempts to merge custom instructions automatically.
+2.  **Web Interface**: A simple local web server to view and manage tasks graphically.
