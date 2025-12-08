@@ -461,6 +461,9 @@ def migrate_all():
 def validate_all(output_format="text"):
     """Validates all task files."""
     errors = []
+    all_tasks = {}  # id -> {path, deps}
+
+    # Pass 1: Parse and Basic Validation
     for root, dirs, files in os.walk(DOCS_DIR):
         for file in files:
             if not file.endswith(".md") or file in ["GUIDE.md", "README.md"]:
@@ -478,24 +481,66 @@ def validate_all(output_format="text"):
 
                 # Check 2: Required fields
                 required_fields = ["id", "status", "title", "created"]
-                for field in required_fields:
-                    if field not in frontmatter:
-                        errors.append(f"{file}: Missing required field '{field}'")
+                missing = [field for field in required_fields if field not in frontmatter]
+                if missing:
+                    errors.append(f"{file}: Missing required fields: {', '.join(missing)}")
+                    continue
+
+                task_id = frontmatter["id"]
 
                 # Check 3: Valid Status
                 if "status" in frontmatter and frontmatter["status"] not in VALID_STATUSES:
                     errors.append(f"{file}: Invalid status '{frontmatter['status']}'")
 
-                # Check 4: Dependencies exist
+                # Parse dependencies
                 deps_str = frontmatter.get("dependencies") or ""
-                if deps_str:
-                    deps = [d.strip() for d in deps_str.split(",") if d.strip()]
-                    for dep_id in deps:
-                         if not find_task_file(dep_id):
-                             errors.append(f"{file}: Invalid dependency '{dep_id}' (task not found)")
+                deps = [d.strip() for d in deps_str.split(",") if d.strip()]
+
+                # Check for Duplicate IDs
+                if task_id in all_tasks:
+                    errors.append(f"{file}: Duplicate Task ID '{task_id}' (also in {all_tasks[task_id]['path']})")
+
+                all_tasks[task_id] = {"path": path, "deps": deps}
 
             except Exception as e:
                 errors.append(f"{file}: Error reading/parsing: {str(e)}")
+
+    # Pass 2: Dependency Validation & Cycle Detection
+    visited = set()
+    recursion_stack = set()
+
+    def detect_cycle(curr_id, path):
+        visited.add(curr_id)
+        recursion_stack.add(curr_id)
+
+        if curr_id in all_tasks:
+            for dep_id in all_tasks[curr_id]["deps"]:
+                # Dependency Existence Check
+                if dep_id not in all_tasks:
+                    # This will be caught in the loop below, but we need to handle it here to avoid error
+                    continue
+
+                if dep_id not in visited:
+                    if detect_cycle(dep_id, path + [dep_id]):
+                        return True
+                elif dep_id in recursion_stack:
+                    path.append(dep_id)
+                    return True
+
+        recursion_stack.remove(curr_id)
+        return False
+
+    for task_id, info in all_tasks.items():
+        # Check dependencies exist
+        for dep_id in info["deps"]:
+            if dep_id not in all_tasks:
+                errors.append(f"{os.path.basename(info['path'])}: Invalid dependency '{dep_id}' (task not found)")
+
+        # Check cycles
+        if task_id not in visited:
+            cycle_path = [task_id]
+            if detect_cycle(task_id, cycle_path):
+                errors.append(f"Circular dependency detected: {' -> '.join(cycle_path)}")
 
     if output_format == "json":
         print(json.dumps({"valid": len(errors) == 0, "errors": errors}))
