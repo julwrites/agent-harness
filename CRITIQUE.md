@@ -10,6 +10,7 @@ The bootstrapping system is a solid, dependency-free foundation for maintaining 
 *   **FIXED** - **ID Collision Risk**: `generate_task_id` now appends a random suffix to the timestamp.
 *   **FIXED** - **Repo State Detection**: `scripts/bootstrap.py` now checks for `.git` directory presence.
 *   **FIXED** - **Validation**: Added `validate` command and `install-hooks` to ensure data integrity and prevent invalid task files.
+*   **FIXED** - **Circular Dependency Detection**: `scripts/tasks.py` now performs cycle detection in task dependencies during validation.
 
 ### 2. Usability (Developer Experience)
 *   **FIXED** - **Task Management Friction**: `complete` command alias added.
@@ -26,7 +27,7 @@ The bootstrapping system is a solid, dependency-free foundation for maintaining 
 ## Remaining Critique
 
 ### 1. Documentation & Workflow
-*   **Bootstrap Finalization**: While warnings are improved, the `finalize` step still requires manual merging if the user modified `AGENTS.md` during bootstrapping. A fully automated merge strategy is not yet implemented.
+*   **IMPROVED** - **Bootstrap Finalization**: The `finalize` step now attempts to preserve custom markdown sections (headers not present in the standard template). However, it does not preserve custom preamble text, and manual verification against the backup is still recommended.
 
 ## Future Suggestions
 

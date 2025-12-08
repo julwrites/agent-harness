@@ -10,6 +10,40 @@ AGENTS_FILE = os.path.join(REPO_ROOT, "AGENTS.md")
 CLAUDE_FILE = os.path.join(REPO_ROOT, "CLAUDE.md")
 TEMPLATE_MAINTENANCE = os.path.join(REPO_ROOT, "templates", "maintenance_mode.md")
 
+STANDARD_HEADERS = [
+    "Helper Scripts",
+    "Agent Interoperability",
+    "Step 1: Detect Repository State",
+    "Step 2: Execution Strategy",
+    "Step 3: Finalize & Switch to Maintenance Mode"
+]
+
+def extract_custom_sections(content):
+    lines = content.splitlines()
+    custom_sections = []
+    current_header = None
+    current_lines = []
+
+    for line in lines:
+        if line.startswith("## "):
+            header = line[3:].strip()
+
+            # Flush previous section if it was custom
+            if current_header and current_header not in STANDARD_HEADERS:
+                custom_sections.append((current_header, "\n".join(current_lines)))
+
+            current_header = header
+            current_lines = []
+        else:
+            if current_header:
+                current_lines.append(line)
+
+    # Flush last section
+    if current_header and current_header not in STANDARD_HEADERS:
+        custom_sections.append((current_header, "\n".join(current_lines)))
+
+    return custom_sections
+
 def check_state():
     print("Repository Analysis:")
 
@@ -65,20 +99,43 @@ def finalize():
         print("Error: Failed to initialize directories.")
         sys.exit(1)
 
+    # Analyze AGENTS.md for custom sections
+    custom_sections = []
+    if os.path.exists(AGENTS_FILE):
+        try:
+            with open(AGENTS_FILE, "r") as f:
+                current_content = f.read()
+            custom_sections = extract_custom_sections(current_content)
+            if custom_sections:
+                print(f"Found {len(custom_sections)} custom sections in AGENTS.md. They will be preserved.")
+        except Exception as e:
+            print(f"Warning: Failed to parse AGENTS.md for custom sections: {e}")
+
     # Backup AGENTS.md
     if os.path.exists(AGENTS_FILE):
         backup_file = AGENTS_FILE + ".bak"
         try:
             shutil.copy2(AGENTS_FILE, backup_file)
             print(f"Backed up AGENTS.md to {backup_file}")
-            print("IMPORTANT: If you added custom instructions to AGENTS.md, they are now in .bak")
-            print("Please review AGENTS.md.bak and merge any custom context into the new AGENTS.md manually.")
+            if not custom_sections:
+                print("IMPORTANT: If you added custom instructions to AGENTS.md, they are now in .bak")
+                print("Please review AGENTS.md.bak and merge any custom context into the new AGENTS.md manually.")
+            else:
+                print(f"NOTE: {len(custom_sections)} custom sections were preserved in the new AGENTS.md.")
+                print("Please review AGENTS.md.bak to ensure no other context (like preamble) was lost.")
         except Exception as e:
             print(f"Warning: Failed to backup AGENTS.md: {e}")
 
     # Read template
     with open(TEMPLATE_MAINTENANCE, "r") as f:
         content = f.read()
+
+    # Append custom sections
+    if custom_sections:
+        content += "\n"
+        for header, body in custom_sections:
+            content += f"\n## {header}\n{body}"
+        print(f"Appended {len(custom_sections)} custom sections to new AGENTS.md")
 
     # Overwrite AGENTS.md
     with open(AGENTS_FILE, "w") as f:
