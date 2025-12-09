@@ -43,6 +43,10 @@
               "type": "string",
               "enum": ["foundation", "infrastructure", "domain", "presentation", "migration", "features", "testing"],
               "description": "Filter by task category."
+            },
+            "archived": {
+              "type": "boolean",
+              "description": "Include archived tasks in the list."
             }
           }
         }
@@ -95,6 +99,23 @@
         "parameters": {
           "type": "object",
           "properties": {}
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "task_archive",
+        "description": "Archive a completed task.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "task_id": {
+              "type": "string",
+              "description": "The ID of the task to archive."
+            }
+          },
+          "required": ["task_id"]
         }
       }
     }
