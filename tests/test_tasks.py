@@ -40,6 +40,13 @@ class TestTasks(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.docs_dir, "foundation")))
         self.assertTrue(os.path.exists(os.path.join(self.repo_root, "docs", "architecture")))
 
+    def test_create_review_task(self):
+        tasks.create_task("review", "Review PR 123", "Checking implementation")
+        files = os.listdir(os.path.join(self.docs_dir, "review"))
+        task_files = [f for f in files if f.endswith(".md") and f != ".keep"]
+        self.assertEqual(len(task_files), 1)
+        self.assertTrue(task_files[0].startswith("REVIEW-"))
+
     def test_create_task(self):
         tasks.create_task("foundation", "My Task", "Description")
         output = sys.stdout.getvalue()

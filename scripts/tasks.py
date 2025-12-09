@@ -23,6 +23,7 @@ CATEGORIES = [
     "migration",
     "features",
     "testing",
+    "review",
 ]
 
 VALID_STATUSES = [
