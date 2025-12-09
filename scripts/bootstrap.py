@@ -18,9 +18,29 @@ STANDARD_HEADERS = [
     "Step 3: Finalize & Switch to Maintenance Mode"
 ]
 
-def extract_custom_sections(content):
+PREAMBLE_IGNORE_PATTERNS = [
+    "# AI Agent Bootstrap Instructions",
+    "**CURRENT STATUS: BOOTSTRAPPING MODE**",
+    "You are an expert Software Architect",
+    "Your current goal is to bootstrap",
+]
+
+def is_ignored_preamble_line(line):
+    l = line.strip()
+    # Keep empty lines to preserve spacing in custom content,
+    # but we will strip the final result to remove excess whitespace.
+    if not l:
+        return False
+
+    for p in PREAMBLE_IGNORE_PATTERNS:
+        if p in l:
+            return True
+    return False
+
+def extract_custom_content(content):
     lines = content.splitlines()
     custom_sections = []
+    preamble_lines = []
     current_header = None
     current_lines = []
 
@@ -28,21 +48,32 @@ def extract_custom_sections(content):
         if line.startswith("## "):
             header = line[3:].strip()
 
-            # Flush previous section if it was custom
-            if current_header and current_header not in STANDARD_HEADERS:
-                custom_sections.append((current_header, "\n".join(current_lines)))
+            # Flush previous section
+            if current_header:
+                if current_header not in STANDARD_HEADERS:
+                    custom_sections.append((current_header, "\n".join(current_lines)))
+            else:
+                # Capture preamble (lines before first header)
+                for l in current_lines:
+                    if not is_ignored_preamble_line(l):
+                        preamble_lines.append(l)
 
             current_header = header
             current_lines = []
         else:
-            if current_header:
-                current_lines.append(line)
+            current_lines.append(line)
 
     # Flush last section
-    if current_header and current_header not in STANDARD_HEADERS:
-        custom_sections.append((current_header, "\n".join(current_lines)))
+    if current_header:
+        if current_header not in STANDARD_HEADERS:
+            custom_sections.append((current_header, "\n".join(current_lines)))
+    else:
+        # If no headers found, everything is preamble
+        for l in current_lines:
+             if not is_ignored_preamble_line(l):
+                 preamble_lines.append(l)
 
-    return custom_sections
+    return "\n".join(preamble_lines).strip(), custom_sections
 
 def check_state():
     print("Repository Analysis:")
@@ -101,13 +132,16 @@ def finalize():
 
     # Analyze AGENTS.md for custom sections
     custom_sections = []
+    custom_preamble = ""
     if os.path.exists(AGENTS_FILE):
         try:
             with open(AGENTS_FILE, "r") as f:
                 current_content = f.read()
-            custom_sections = extract_custom_sections(current_content)
+            custom_preamble, custom_sections = extract_custom_content(current_content)
             if custom_sections:
                 print(f"Found {len(custom_sections)} custom sections in AGENTS.md. They will be preserved.")
+            if custom_preamble:
+                print(f"Found custom preamble text in AGENTS.md. It will be preserved.")
         except Exception as e:
             print(f"Warning: Failed to parse AGENTS.md for custom sections: {e}")
 
@@ -117,18 +151,22 @@ def finalize():
         try:
             shutil.copy2(AGENTS_FILE, backup_file)
             print(f"Backed up AGENTS.md to {backup_file}")
-            if not custom_sections:
+            if not custom_sections and not custom_preamble:
                 print("IMPORTANT: If you added custom instructions to AGENTS.md, they are now in .bak")
                 print("Please review AGENTS.md.bak and merge any custom context into the new AGENTS.md manually.")
             else:
-                print(f"NOTE: {len(custom_sections)} custom sections were preserved in the new AGENTS.md.")
-                print("Please review AGENTS.md.bak to ensure no other context (like preamble) was lost.")
+                print(f"NOTE: Custom sections/preamble were preserved in the new AGENTS.md.")
+                print("Please review AGENTS.md.bak to ensure no other context was lost.")
         except Exception as e:
             print(f"Warning: Failed to backup AGENTS.md: {e}")
 
     # Read template
     with open(TEMPLATE_MAINTENANCE, "r") as f:
         content = f.read()
+
+    # Prepend custom preamble
+    if custom_preamble:
+        content = custom_preamble + "\n\n" + content
 
     # Append custom sections
     if custom_sections:
