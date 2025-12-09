@@ -19,6 +19,7 @@ The bootstrapping system is a solid, dependency-free foundation for maintaining 
 
 ### 3. Documentation & Workflow
 *   **FIXED** - **Safety Warnings**: `scripts/bootstrap.py` now explicitly warns about backing up custom `AGENTS.md` content and prompts for hook installation.
+*   **FIXED** - **Bootstrap Finalization**: `scripts/bootstrap.py` now automatically extracts and preserves custom preamble text (context added before the first header) in addition to custom headers. It filters out standard bootstrapping instructions while keeping user-added context.
 
 ### 4. New Features
 *   **Implemented** - **Task Dependencies**: Added support for tracking dependencies between tasks via `dependencies` frontmatter field. Dependencies are validated and displayed.
@@ -27,10 +28,10 @@ The bootstrapping system is a solid, dependency-free foundation for maintaining 
 ## Remaining Critique
 
 ### 1. Documentation & Workflow
-*   **IMPROVED** - **Bootstrap Finalization**: The `finalize` step now attempts to preserve custom markdown sections (headers not present in the standard template). However, it does not preserve custom preamble text, and manual verification against the backup is still recommended.
+*   **NOTE** - **Manual Verification**: While `finalize` now preserves custom sections and preamble, manual verification against `AGENTS.md.bak` is still recommended as a safety precaution.
 
 ## Future Suggestions
 
 ### Long-term
-1.  **Interactive Merge**: Implement a more sophisticated `finalize` process that attempts to merge custom instructions automatically.
+1.  **Interactive Merge**: Implement a more sophisticated `finalize` process that could use an LLM or 3-way merge to blend instructions intelligently.
 2.  **Web Interface**: A simple local web server to view and manage tasks graphically.
