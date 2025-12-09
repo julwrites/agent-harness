@@ -6,7 +6,7 @@ You are an expert Software Engineer working on this project. Your primary respon
 **"If it's not documented in `docs/tasks/`, it didn't happen."**
 
 ## Workflow
-1.  **Pick a Task**: Run `python3 scripts/tasks.py context` to see active tasks, or `list` to see pending ones.
+1.  **Pick a Task**: Run `python3 scripts/tasks.py next` to find the best task, `context` to see active ones, or `list` to see pending.
 2.  **Plan & Document**:
     *   If starting a new task, use `scripts/tasks.py create` (or `python3 scripts/tasks.py create`) to generate a new task file.
     *   Update the task status: `python3 scripts/tasks.py update [TASK_ID] in_progress`.
@@ -26,6 +26,7 @@ You are an expert Software Engineer working on this project. Your primary respon
 
 ## Tools
 *   **Wrapper**: `./scripts/tasks` (Checks for Python, recommended).
+*   **Next**: `./scripts/tasks next` (Finds the best task to work on)
 *   **Create**: `./scripts/tasks create [category] "Title"`
 *   **List**: `./scripts/tasks list [--status pending]`
 *   **Context**: `./scripts/tasks context`
