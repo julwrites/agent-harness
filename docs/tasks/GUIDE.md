@@ -14,6 +14,7 @@ Tasks are organized by category in `docs/tasks/`:
 - `features/`: End-to-end feature implementation
 - `migration/`: Refactoring, upgrades
 - `testing/`: Testing infrastructure
+- `review/`: Code reviews and PR analysis
 
 ## Task Document Format
 

@@ -1,48 +1,81 @@
-# AI Agent Bootstrap Instructions
+# AI Agent Instructions
 
-**CURRENT STATUS: BOOTSTRAPPING MODE**
+You are an expert Software Engineer working on this project. Your primary responsibility is to implement features and fixes while strictly adhering to the **Task Documentation System**.
 
-You are an expert Software Architect and Project Manager. Your current goal is to bootstrap this repository for AI-driven development using a structured Task Documentation System.
+## Core Philosophy
+**"If it's not documented in `docs/tasks/`, it didn't happen."**
 
-## Helper Scripts
-This repository includes scripts to assist you:
-- `scripts/tasks.py`: Create and list tasks.
-- `scripts/bootstrap.py`: Analyze state and switch modes.
+## Workflow
+1.  **Pick a Task**: Run `python3 scripts/tasks.py context` to see active tasks, or `list` to see pending ones.
+2.  **Plan & Document**:
+    *   If starting a new task, use `scripts/tasks.py create` (or `python3 scripts/tasks.py create`) to generate a new task file.
+    *   Update the task status: `python3 scripts/tasks.py update [TASK_ID] in_progress`.
+3.  **Implement**: Write code, run tests.
+4.  **Update Documentation Loop**:
+    *   As you complete sub-tasks, check them off in the task document.
+    *   If you hit a blocker, update status to `wip_blocked` and describe the issue in the file.
+    *   Record key architectural decisions in the task document.
+5.  **Review & Verify**:
+    *   Once implementation is complete, update status to `review_requested`: `python3 scripts/tasks.py update [TASK_ID] review_requested`.
+    *   Ask a human or another agent to review the code.
+    *   Once approved and tested, update status to `verified`.
+6.  **Finalize**:
+    *   Update status to `completed`: `python3 scripts/tasks.py update [TASK_ID] completed`.
+    *   Record actual effort in the file.
+    *   Ensure all acceptance criteria are met.
+
+## Tools
+*   **Wrapper**: `./scripts/tasks` (Checks for Python, recommended).
+*   **Create**: `./scripts/tasks create [category] "Title"`
+*   **List**: `./scripts/tasks list [--status pending]`
+*   **Context**: `./scripts/tasks context`
+*   **Update**: `./scripts/tasks update [ID] [status]`
+*   **Migrate**: `./scripts/tasks migrate` (Migrate legacy tasks to new format)
+*   **JSON Output**: Add `--format json` to any command for machine parsing.
+
+## Documentation Reference
+*   **Guide**: Read `docs/tasks/GUIDE.md` for strict formatting and process rules.
+*   **Architecture**: Refer to `docs/architecture/` for system design.
+*   **Features**: Refer to `docs/features/` for feature specifications.
+
+## Code Style & Standards
+*   Follow the existing patterns in the codebase.
+*   Ensure all new code is covered by tests (if testing infrastructure exists).
+
+## PR Review Methodology
+When performing a PR review, follow this "Human-in-the-loop" process to ensure depth and efficiency.
+
+### 1. Preparation
+1.  **Create Task**: `python3 scripts/tasks.py create review "Review PR #<N>: <Title>"`
+2.  **Fetch Details**: Use `gh` to get the PR context.
+    *   `gh pr view <N>`
+    *   `gh pr diff <N>`
+
+### 2. Analysis & Planning (The "Review Plan")
+**Do not review line-by-line yet.** Instead, analyze the changes and document a **Review Plan** in the task file (or present it for approval).
+
+Your plan must include:
+*   **High-Level Summary**: Purpose, new APIs, breaking changes.
+*   **Dependency Check**: New libraries, maintenance status, security.
+*   **Impact Assessment**: Effect on existing code/docs.
+*   **Focus Areas**: Prioritized list of files/modules to check.
+*   **Suggested Comments**: Draft comments for specific lines.
+    *   Format: `File: <path> | Line: <N> | Comment: <suggestion>`
+    *   Tone: Friendly, suggestion-based ("Consider...", "Nit: ...").
+
+### 3. Execution
+Once the human approves the plan and comments:
+1.  **Pending Review**: Create a pending review using `gh`.
+    *   `COMMIT_SHA=$(gh pr view <N> --json headRefOid -q .headRefOid)`
+    *   `gh api repos/{owner}/{repo}/pulls/{N}/reviews -f commit_id="$COMMIT_SHA"`
+2.  **Batch Comments**: Add comments to the pending review.
+    *   `gh api repos/{owner}/{repo}/pulls/{N}/comments -f body="..." -f path="..." -f commit_id="$COMMIT_SHA" -F line=<L> -f side="RIGHT"`
+3.  **Submit**:
+    *   `gh pr review <N> --approve --body "Summary..."` (or `--request-changes`).
+
+### 4. Close Task
+*   Update task status to `completed`.
 
 ## Agent Interoperability
-This repository provides tools for AI agents (Claude Code, Cursor, etc.):
 - **Claude Skill**: `.claude/skills/task_manager/`
-- **Tool Definitions**: `docs/interop/tool_definitions.json` (JSON Schema)
-- **Execution Wrapper**: `scripts/tasks` (Recommended entry point)
-
-## Step 1: Detect Repository State
-Run `python3 scripts/bootstrap.py` to analyze the repository.
-
-## Step 2: Execution Strategy
-
-### Scenario A: New Repository
-1.  **Initialize**: Run `python3 scripts/tasks.py init` to generate directory structure.
-2.  **Interview**: Ask the user what they want to build (stack, features, goals).
-3.  **Plan**: Propose a high-level architecture.
-4.  **Document**:
-    *   Fill in `docs/architecture/README.md` and `docs/features/README.md`.
-    *   Create the first task: `python3 scripts/tasks.py create foundation "Initial Project Setup"`
-5.  **Scaffold Project**: Generate a `.gitignore` suitable for the chosen stack.
-6.  **Proceed to Step 3 (Finalize).**
-
-### Scenario B: Existing Repository
-1.  **Initialize**: Run `python3 scripts/tasks.py init` to generate directory structure.
-2.  **Analyze**: Read the code to understand the current architecture.
-3.  **Document**:
-    *   Update `docs/architecture/README.md` reflecting the *current* architecture.
-    *   Update `docs/features/README.md` listing implemented features.
-4.  **Identify Tasks**:
-    *   If you find TODOs or bugs, create tasks: `python3 scripts/tasks.py create migration "Fix TODOs"`
-5.  **Proceed to Step 3 (Finalize).**
-
-## Step 3: Finalize & Switch to Maintenance Mode
-Once the documentation structure is populated and the initial plan is set:
-
-1.  **Run**: `python3 scripts/bootstrap.py finalize`
-2.  **Verify**: Ensure `AGENTS.md` now contains the "Project Specific Instructions".
-3.  **Notify**: Tell the user bootstrapping is complete.
+- **Tool Definitions**: `docs/interop/tool_definitions.json`
