@@ -29,6 +29,10 @@ title: Initial Project Setup     # Task Title
 priority: medium                 # high, medium, low
 created: 2025-05-21 10:30:00     # Creation timestamp
 category: foundation             # Category
+type: task                       # task, story, bug, epic (Optional)
+sprint: Sprint 1                 # Iteration identifier (Optional)
+estimate: 3                      # Story points / T-shirt size (Optional)
+dependencies: TASK-001, TASK-002 # Comma separated list of IDs (Optional)
 ---
 ```
 
@@ -68,11 +72,18 @@ category: foundation             # Category
 Use the `scripts/tasks` wrapper to manage tasks.
 
 ```bash
-# Create a new task
+# Create a new task (standard)
 ./scripts/tasks create foundation "Task Title"
 
-# List tasks
+# Create an Agile Story in a Sprint
+./scripts/tasks create features "User Login" --type story --sprint "Sprint 1" --estimate 5
+
+# List tasks (can filter by sprint)
 ./scripts/tasks list
+./scripts/tasks list --sprint "Sprint 1"
+
+# Find the next best task to work on (Smart Agent Mode)
+./scripts/tasks next
 
 # Update status
 ./scripts/tasks update [TASK_ID] in_progress
@@ -84,9 +95,28 @@ Use the `scripts/tasks` wrapper to manage tasks.
 ./scripts/tasks migrate
 ```
 
+## Agile Methodology
+
+This system supports Agile/Scrum workflows for LLM-Human collaboration.
+
+### Sprints
+- Tag tasks with `sprint: [Name]` to group them into iterations.
+- Use `./scripts/tasks list --sprint [Name]` to view the sprint backlog.
+
+### Estimation
+- Use `estimate: [Value]` (e.g., Fibonacci numbers 1, 2, 3, 5, 8) to size tasks.
+
+### Auto-Pilot
+- The `./scripts/tasks next` command uses an algorithm to determine the optimal next task based on:
+    1.  Status (In Progress > Pending)
+    2.  Dependencies (Unblocked > Blocked)
+    3.  Sprint (Current Sprint > Backlog)
+    4.  Priority (High > Low)
+    5.  Type (Stories/Bugs > Tasks)
+
 ## Agent Integration
 
 Agents (Claude, etc.) use this system to track their work.
-- Always check `./scripts/tasks context` before starting.
+- Always check `./scripts/tasks context` or use `./scripts/tasks next` before starting.
 - Keep the task file updated with your progress.
 - Use `review_requested` when you need human feedback.

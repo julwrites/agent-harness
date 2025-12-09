@@ -38,6 +38,13 @@ VALID_STATUSES = [
     "deferred"
 ]
 
+VALID_TYPES = [
+    "epic",
+    "story",
+    "task",
+    "bug"
+]
+
 ARCHIVE_DIR_NAME = "archive"
 
 def init_docs():
@@ -122,6 +129,9 @@ def parse_task_content(content, filepath=None):
             "status": frontmatter.get("status", "unknown"),
             "title": frontmatter.get("title", "No Title"),
             "priority": frontmatter.get("priority", "medium"),
+            "type": frontmatter.get("type", "task"),
+            "sprint": frontmatter.get("sprint", ""),
+            "estimate": frontmatter.get("estimate", ""),
             "dependencies": deps,
             "filepath": filepath,
             "content": content
@@ -143,12 +153,15 @@ def parse_task_content(content, filepath=None):
         "status": status,
         "title": title,
         "priority": priority,
+        "type": "task",
+        "sprint": "",
+        "estimate": "",
         "dependencies": [],
         "filepath": filepath,
         "content": content
     }
 
-def create_task(category, title, description, priority="medium", status="pending", dependencies=None, output_format="text"):
+def create_task(category, title, description, priority="medium", status="pending", dependencies=None, task_type="task", sprint="", estimate="", output_format="text"):
     if category not in CATEGORIES:
         msg = f"Error: Category '{category}' not found. Available: {', '.join(CATEGORIES)}"
         if output_format == "json":
@@ -170,6 +183,14 @@ def create_task(category, title, description, priority="medium", status="pending
     if dependencies:
         deps_str = ", ".join(dependencies)
 
+    extra_fm = ""
+    if task_type:
+        extra_fm += f"type: {task_type}\n"
+    if sprint:
+        extra_fm += f"sprint: {sprint}\n"
+    if estimate:
+        extra_fm += f"estimate: {estimate}\n"
+
     content = f"""---
 id: {task_id}
 status: {status}
@@ -178,7 +199,7 @@ priority: {priority}
 created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 category: {category}
 dependencies: {deps_str}
----
+{extra_fm}---
 
 # {title}
 
@@ -195,7 +216,8 @@ dependencies: {deps_str}
             "title": title,
             "filepath": filepath,
             "status": status,
-            "priority": priority
+            "priority": priority,
+            "type": task_type
         }))
     else:
         print(f"Created task: {filepath}")
@@ -322,6 +344,12 @@ def migrate_to_frontmatter(content, task_data):
     if "*Created:" in description:
         description = description.split("---")[0].strip()
 
+    # Check for extra keys in task_data that might need preservation
+    extra_fm = ""
+    if task_data.get("type"): extra_fm += f"type: {task_data['type']}\n"
+    if task_data.get("sprint"): extra_fm += f"sprint: {task_data['sprint']}\n"
+    if task_data.get("estimate"): extra_fm += f"estimate: {task_data['estimate']}\n"
+
     new_content = f"""---
 id: {task_data['id']}
 status: {task_data['status']}
@@ -329,7 +357,7 @@ title: {task_data['title']}
 priority: {task_data['priority']}
 created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 category: unknown
----
+{extra_fm}---
 
 # {task_data['title']}
 
@@ -406,7 +434,7 @@ def update_task_status(task_id, new_status, output_format="text"):
         print(f"Updated {task_id} status to {new_status}")
 
 
-def list_tasks(status=None, category=None, include_archived=False, output_format="text"):
+def list_tasks(status=None, category=None, sprint=None, include_archived=False, output_format="text"):
     tasks = []
 
     for root, dirs, files in os.walk(DOCS_DIR):
@@ -445,6 +473,9 @@ def list_tasks(status=None, category=None, include_archived=False, output_format
             if status and status.lower() != task["status"].lower():
                 continue
 
+            if sprint and sprint != task.get("sprint"):
+                continue
+
             tasks.append(task)
 
     if output_format == "json":
@@ -452,11 +483,11 @@ def list_tasks(status=None, category=None, include_archived=False, output_format
         print(json.dumps(summary))
     else:
         # Adjust width for ID to handle longer IDs
-        print(f"{'ID':<25} {'Status':<20} {'Title'}")
-        print("-" * 75)
+        print(f"{'ID':<25} {'Status':<20} {'Type':<8} {'Title'}")
+        print("-" * 85)
         for t in tasks:
-            # Status width increased to accommodate 'review_requested'
-            print(f"{t['id']:<25} {t['status']:<20} {t['title']}")
+            t_type = t.get("type", "task")[:8]
+            print(f"{t['id']:<25} {t['status']:<20} {t_type:<8} {t['title']}")
 
 def get_context(output_format="text"):
     """Lists tasks that are currently in progress."""
@@ -526,6 +557,10 @@ def validate_all(output_format="text"):
                 # Check 3: Valid Status
                 if "status" in frontmatter and frontmatter["status"] not in VALID_STATUSES:
                     errors.append(f"{file}: Invalid status '{frontmatter['status']}'")
+
+                # Check 4: Valid Type
+                if "type" in frontmatter and frontmatter["type"] not in VALID_TYPES:
+                    errors.append(f"{file}: Invalid type '{frontmatter['type']}'")
 
                 # Parse dependencies
                 deps_str = frontmatter.get("dependencies") or ""
@@ -646,6 +681,103 @@ def visualize_tasks(output_format="text"):
         for dep in deps:
             print(f"    {dep} --> {t['id']}")
 
+def get_next_task(output_format="text"):
+    """Identifies the next best task to work on."""
+    # 1. Collect all tasks
+    all_tasks = {}
+    for root, _, files in os.walk(DOCS_DIR):
+        for file in files:
+            if not file.endswith(".md") or file in ["GUIDE.md", "README.md"]:
+                continue
+            path = os.path.join(root, file)
+            try:
+                with open(path, "r") as f:
+                    content = f.read()
+                task = parse_task_content(content, path)
+                if task["id"] != "unknown":
+                    all_tasks[task["id"]] = task
+            except:
+                pass
+
+    candidates = []
+
+    # Priority mapping
+    prio_score = {"high": 3, "medium": 2, "low": 1, "unknown": 1}
+
+    for tid, task in all_tasks.items():
+        # Filter completed
+        if task["status"] in ["completed", "verified", "cancelled", "deferred", "blocked"]:
+            continue
+
+        # Check dependencies
+        deps = task.get("dependencies", [])
+        blocked = False
+        for dep_id in deps:
+            if dep_id not in all_tasks:
+                blocked = True # Missing dependency
+                break
+
+            dep_status = all_tasks[dep_id]["status"]
+            if dep_status not in ["completed", "verified"]:
+                blocked = True
+                break
+
+        if blocked:
+            continue
+
+        # Calculate Score
+        score = 0
+
+        # Status Bonus
+        if task["status"] == "in_progress":
+            score += 1000
+        elif task["status"] == "pending":
+            score += 100
+        elif task["status"] == "wip_blocked":
+             # Unblocked now
+             score += 500
+
+        # Priority
+        score += prio_score.get(task.get("priority", "medium"), 1) * 10
+
+        # Sprint Bonus
+        if task.get("sprint"):
+            score += 50
+
+        # Type Bonus (Stories/Bugs > Tasks > Epics)
+        t_type = task.get("type", "task")
+        if t_type in ["story", "bug"]:
+            score += 20
+        elif t_type == "task":
+            score += 10
+
+        candidates.append((score, task))
+
+    candidates.sort(key=lambda x: x[0], reverse=True)
+
+    if not candidates:
+        msg = "No suitable tasks found (all completed or blocked)."
+        if output_format == "json":
+            print(json.dumps({"message": msg}))
+        else:
+            print(msg)
+        return
+
+    best = candidates[0][1]
+
+    if output_format == "json":
+        print(json.dumps(best))
+    else:
+        print(f"Recommended Next Task (Score: {candidates[0][0]}):")
+        print(f"ID:       {best['id']}")
+        print(f"Title:    {best['title']}")
+        print(f"Status:   {best['status']}")
+        print(f"Priority: {best['priority']}")
+        print(f"Type:     {best.get('type', 'task')}")
+        if best.get("sprint"):
+             print(f"Sprint:   {best.get('sprint')}")
+        print(f"\nRun: scripts/tasks show {best['id']}")
+
 def install_hooks():
     """Installs the git pre-commit hook."""
     hook_path = os.path.join(REPO_ROOT, ".git", "hooks", "pre-commit")
@@ -690,11 +822,15 @@ def main():
     create_parser.add_argument("--priority", default="medium", help="Task priority")
     create_parser.add_argument("--status", choices=VALID_STATUSES, default="pending", help="Task status")
     create_parser.add_argument("--dependencies", help="Comma-separated list of task IDs this task depends on")
+    create_parser.add_argument("--type", choices=VALID_TYPES, default="task", help="Task type")
+    create_parser.add_argument("--sprint", default="", help="Sprint name/ID")
+    create_parser.add_argument("--estimate", default="", help="Estimate (points/size)")
 
     # List
     list_parser = subparsers.add_parser("list", parents=[parent_parser], help="List tasks")
     list_parser.add_argument("--status", help="Filter by status")
     list_parser.add_argument("--category", choices=CATEGORIES, help="Filter by category")
+    list_parser.add_argument("--sprint", help="Filter by sprint")
     list_parser.add_argument("--archived", action="store_true", help="Include archived tasks")
 
     # Show
@@ -716,6 +852,9 @@ def main():
 
     # Context
     subparsers.add_parser("context", parents=[parent_parser], help="Show current context (in_progress tasks)")
+
+    # Next
+    subparsers.add_parser("next", parents=[parent_parser], help="Suggest the next task to work on")
 
     # Migrate
     subparsers.add_parser("migrate", parents=[parent_parser], help="Migrate legacy tasks to new format")
@@ -742,9 +881,9 @@ def main():
         deps = []
         if args.dependencies:
             deps = [d.strip() for d in args.dependencies.split(",") if d.strip()]
-        create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, dependencies=deps, output_format=fmt)
+        create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, dependencies=deps, task_type=args.type, sprint=args.sprint, estimate=args.estimate, output_format=fmt)
     elif args.command == "list":
-        list_tasks(args.status, args.category, include_archived=args.archived, output_format=fmt)
+        list_tasks(args.status, args.category, sprint=args.sprint, include_archived=args.archived, output_format=fmt)
     elif args.command == "init":
         init_docs()
     elif args.command == "show":
@@ -757,6 +896,8 @@ def main():
         update_task_status(args.task_id, args.status, output_format=fmt)
     elif args.command == "context":
         get_context(output_format=fmt)
+    elif args.command == "next":
+        get_next_task(output_format=fmt)
     elif args.command == "migrate":
         migrate_all()
     elif args.command == "complete":
