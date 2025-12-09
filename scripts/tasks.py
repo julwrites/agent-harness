@@ -11,7 +11,7 @@ from datetime import datetime
 # Determine the root directory of the repo
 # Assumes this script is in scripts/
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+REPO_ROOT = os.getenv("TASKS_REPO_ROOT", os.path.dirname(SCRIPT_DIR))
 DOCS_DIR = os.path.join(REPO_ROOT, "docs", "tasks")
 TEMPLATES_DIR = os.path.join(REPO_ROOT, "templates")
 
@@ -36,6 +36,8 @@ VALID_STATUSES = [
     "cancelled",
     "deferred"
 ]
+
+ARCHIVE_DIR_NAME = "archive"
 
 def init_docs():
     """Scaffolds the documentation directory structure."""
@@ -211,12 +213,7 @@ def find_task_file(task_id):
                 for file in os.listdir(category_dir):
                      if file.startswith(task_id) and file.endswith(".md"):
                          return os.path.join(category_dir, file)
-            # If not found in expected category, return None (or fall through if we want to be paranoid)
-            # But the ID structure is strict, so we can likely return None here.
-            # However, for safety against moved files, let's fall through to full search if not found?
-            # No, if it has the category prefix, it SHOULD be in that folder.
-            # But if the user moved it manually... let's stick to the optimization.
-            return None
+            # Fallback to full search if not found in expected category (e.g. moved to archive)
 
     for root, _, files in os.walk(DOCS_DIR):
         for file in files:
@@ -272,6 +269,37 @@ def delete_task(task_id, output_format="text"):
             print(f"Deleted task: {task_id}")
     except Exception as e:
         msg = f"Error deleting file: {e}"
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
+        sys.exit(1)
+
+def archive_task(task_id, output_format="text"):
+    filepath = find_task_file(task_id)
+    if not filepath:
+        msg = f"Error: Task ID {task_id} not found."
+        if output_format == "json":
+            print(json.dumps({"error": msg}))
+        else:
+            print(msg)
+        sys.exit(1)
+
+    try:
+        archive_dir = os.path.join(DOCS_DIR, ARCHIVE_DIR_NAME)
+        os.makedirs(archive_dir, exist_ok=True)
+        filename = os.path.basename(filepath)
+        new_filepath = os.path.join(archive_dir, filename)
+
+        os.rename(filepath, new_filepath)
+
+        if output_format == "json":
+            print(json.dumps({"success": True, "id": task_id, "message": "Archived task", "new_path": new_filepath}))
+        else:
+            print(f"Archived task: {task_id} -> {new_filepath}")
+
+    except Exception as e:
+        msg = f"Error archiving task: {e}"
         if output_format == "json":
             print(json.dumps({"error": msg}))
         else:
@@ -377,14 +405,20 @@ def update_task_status(task_id, new_status, output_format="text"):
         print(f"Updated {task_id} status to {new_status}")
 
 
-def list_tasks(status=None, category=None, output_format="text"):
+def list_tasks(status=None, category=None, include_archived=False, output_format="text"):
     tasks = []
 
     for root, dirs, files in os.walk(DOCS_DIR):
+        rel_path = os.path.relpath(root, DOCS_DIR)
+
+        # Exclude archive unless requested
+        if not include_archived:
+            if rel_path == ARCHIVE_DIR_NAME or rel_path.startswith(ARCHIVE_DIR_NAME + os.sep):
+                continue
+
         # Filter by category if provided
         if category:
-            rel_path = os.path.relpath(root, DOCS_DIR)
-            if rel_path != category:
+            if rel_path != category and not rel_path.startswith(category + os.sep):
                 continue
 
         for file in files:
@@ -660,6 +694,7 @@ def main():
     list_parser = subparsers.add_parser("list", parents=[parent_parser], help="List tasks")
     list_parser.add_argument("--status", help="Filter by status")
     list_parser.add_argument("--category", choices=CATEGORIES, help="Filter by category")
+    list_parser.add_argument("--archived", action="store_true", help="Include archived tasks")
 
     # Show
     show_parser = subparsers.add_parser("show", parents=[parent_parser], help="Show task details")
@@ -673,6 +708,10 @@ def main():
     # Delete
     delete_parser = subparsers.add_parser("delete", parents=[parent_parser], help="Delete a task")
     delete_parser.add_argument("task_id", help="Task ID (e.g., FOUNDATION-001)")
+
+    # Archive
+    archive_parser = subparsers.add_parser("archive", parents=[parent_parser], help="Archive a task")
+    archive_parser.add_argument("task_id", help="Task ID")
 
     # Context
     subparsers.add_parser("context", parents=[parent_parser], help="Show current context (in_progress tasks)")
@@ -704,13 +743,15 @@ def main():
             deps = [d.strip() for d in args.dependencies.split(",") if d.strip()]
         create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, dependencies=deps, output_format=fmt)
     elif args.command == "list":
-        list_tasks(args.status, args.category, output_format=fmt)
+        list_tasks(args.status, args.category, include_archived=args.archived, output_format=fmt)
     elif args.command == "init":
         init_docs()
     elif args.command == "show":
         show_task(args.task_id, output_format=fmt)
     elif args.command == "delete":
         delete_task(args.task_id, output_format=fmt)
+    elif args.command == "archive":
+        archive_task(args.task_id, output_format=fmt)
     elif args.command == "update":
         update_task_status(args.task_id, args.status, output_format=fmt)
     elif args.command == "context":

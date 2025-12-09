@@ -36,6 +36,10 @@ Command: `./scripts/tasks context [--format json]`
 Delete a task.
 Command: `./scripts/tasks delete <task_id> [--format json]`
 
+### Archive Task
+Archive a completed task.
+Command: `./scripts/tasks archive <task_id> [--format json]`
+
 ## Usage Instructions
 - Always use `./scripts/tasks context` to see what is currently being worked on before starting new work.
 - When creating a task, choose the appropriate category.

@@ -25,10 +25,19 @@ The bootstrapping system is a solid, dependency-free foundation for maintaining 
 *   **Implemented** - **Task Dependencies**: Added support for tracking dependencies between tasks via `dependencies` frontmatter field. Dependencies are validated and displayed.
 *   **Implemented** - **Visualization**: Added `visualize` command to generate Mermaid diagrams of task dependencies, color-coded by status.
 
+### 5. Maintenance & Reliability
+*   **Implemented** - **Self-Testing**: Added `tests/test_tasks.py` with unit tests covering core functionality and regression tests for known bugs.
+*   **FIXED** - **Search Robustness**: `find_task_file` now correctly falls back to a full search if the optimized category lookup fails (e.g., if a task was moved).
+*   **FIXED** - **Nested Directory Support**: `list_tasks` now correctly filters by category even if tasks are located in subdirectories.
+*   **Implemented** - **Archiving**: Added `archive` command to move completed tasks to `docs/tasks/archive/`, keeping the active view clean. `list` command excludes archived tasks by default.
+
 ## Remaining Critique
 
 ### 1. Documentation & Workflow
 *   **NOTE** - **Manual Verification**: While `finalize` now preserves custom sections and preamble, manual verification against `AGENTS.md.bak` is still recommended as a safety precaution.
+
+### 2. Configuration
+*   **NOTE** - **Hardcoded Categories**: Categories are currently hardcoded in `scripts/tasks.py`. Making them configurable would improve flexibility for different project types.
 
 ## Future Suggestions
 
