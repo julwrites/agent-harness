@@ -104,9 +104,10 @@ def check_state():
     print("1. Run 'python3 scripts/tasks.py init' to scaffold directories.")
     print("2. Run 'python3 scripts/tasks.py create foundation \"Initial Setup\"' to track your work.")
     print("3. Explore docs/architecture/ and docs/features/.")
-    print("4. When ready to switch to maintenance mode, run: python3 scripts/bootstrap.py finalize")
+    print("4. When ready to switch to maintenance mode, run: python3 scripts/bootstrap.py finalize --interactive")
 
 def finalize():
+    interactive = "--interactive" in sys.argv
     print("Finalizing setup...")
     if not os.path.exists(TEMPLATE_MAINTENANCE):
         print(f"Error: Template {TEMPLATE_MAINTENANCE} not found.")
@@ -138,12 +139,39 @@ def finalize():
             with open(AGENTS_FILE, "r") as f:
                 current_content = f.read()
             custom_preamble, custom_sections = extract_custom_content(current_content)
-            if custom_sections:
-                print(f"Found {len(custom_sections)} custom sections in AGENTS.md. They will be preserved.")
-            if custom_preamble:
-                print(f"Found custom preamble text in AGENTS.md. It will be preserved.")
         except Exception as e:
             print(f"Warning: Failed to parse AGENTS.md for custom sections: {e}")
+
+    if interactive:
+        print("\n--- Merge Analysis ---")
+        if custom_preamble:
+            print("[PRESERVED] Custom Preamble (lines before first header)")
+            print(f"   Snippet: {custom_preamble.splitlines()[0][:60]}...")
+        else:
+            print("[INFO] No custom preamble found.")
+
+        if custom_sections:
+            print(f"[PRESERVED] {len(custom_sections)} Custom Sections:")
+            for header, _ in custom_sections:
+                print(f"   - {header}")
+        else:
+            print("[INFO] No custom sections found.")
+
+        print("\n[REPLACED] The following standard bootstrapping sections will be replaced by Maintenance Mode instructions:")
+        for header in STANDARD_HEADERS:
+             print(f"   - {header}")
+
+        print(f"\n[ACTION] AGENTS.md will be backed up to AGENTS.md.bak")
+
+        try:
+            # Use input if available, but handle non-interactive environments
+            response = input("\nProceed with finalization? [y/N] ")
+        except EOFError:
+            response = "n"
+
+        if response.lower() not in ["y", "yes"]:
+            print("Aborting.")
+            sys.exit(0)
 
     # Backup AGENTS.md
     if os.path.exists(AGENTS_FILE):
@@ -151,12 +179,12 @@ def finalize():
         try:
             shutil.copy2(AGENTS_FILE, backup_file)
             print(f"Backed up AGENTS.md to {backup_file}")
-            if not custom_sections and not custom_preamble:
+            if not custom_sections and not custom_preamble and not interactive:
                 print("IMPORTANT: If you added custom instructions to AGENTS.md, they are now in .bak")
                 print("Please review AGENTS.md.bak and merge any custom context into the new AGENTS.md manually.")
-            else:
-                print(f"NOTE: Custom sections/preamble were preserved in the new AGENTS.md.")
-                print("Please review AGENTS.md.bak to ensure no other context was lost.")
+            elif not interactive:
+                 print(f"NOTE: Custom sections/preamble were preserved in the new AGENTS.md.")
+                 print("Please review AGENTS.md.bak to ensure no other context was lost.")
         except Exception as e:
             print(f"Warning: Failed to backup AGENTS.md: {e}")
 
@@ -173,7 +201,8 @@ def finalize():
         content += "\n"
         for header, body in custom_sections:
             content += f"\n## {header}\n{body}"
-        print(f"Appended {len(custom_sections)} custom sections to new AGENTS.md")
+        if not interactive:
+            print(f"Appended {len(custom_sections)} custom sections to new AGENTS.md")
 
     # Overwrite AGENTS.md
     with open(AGENTS_FILE, "w") as f:
