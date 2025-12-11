@@ -20,6 +20,7 @@ STANDARD_HEADERS = [
 
 PREAMBLE_IGNORE_PATTERNS = [
     "# AI Agent Bootstrap Instructions",
+    "# AI Agent Instructions",
     "**CURRENT STATUS: BOOTSTRAPPING MODE**",
     "You are an expert Software Architect",
     "Your current goal is to bootstrap",

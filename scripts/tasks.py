@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import shutil
 import argparse
 import re
 import json
@@ -59,6 +60,13 @@ def init_docs():
         # Create .keep file to ensure git tracks the directory
         with open(os.path.join(path, ".keep"), "w") as f:
             pass
+
+    # Copy GUIDE.md if missing
+    guide_path = os.path.join(DOCS_DIR, "GUIDE.md")
+    guide_template = os.path.join(TEMPLATES_DIR, "GUIDE.md")
+    if not os.path.exists(guide_path) and os.path.exists(guide_template):
+        shutil.copy(guide_template, guide_path)
+        print(f"Created {guide_path}")
 
     # Create other doc directories
     for doc_type in ["architecture", "features", "security"]:
