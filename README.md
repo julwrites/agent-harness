@@ -1,6 +1,6 @@
-# AI-Assisted Project Bootstrapper
+# Agent Harness
 
-This repository provides a standardized foundation for AI-assisted coding projects. It includes a robust Task Documentation System, Memory Management, and AI Agent Instructions to streamline collaboration between human developers and AI agents.
+This repository provides a standardized **harness** for AI-assisted coding projects. It includes a robust Task Documentation System, Memory Management, and AI Agent Instructions to streamline collaboration between human developers and AI agents.
 
 ## Features
 
@@ -58,7 +58,7 @@ Refer to [AGENTS.md](AGENTS.md) for detailed operational instructions. This file
 
 ## Maintenance
 
-To upgrade the bootstrapper scripts or switch to maintenance mode, use `scripts/bootstrap.py`.
+To upgrade the harness scripts or switch to maintenance mode, use `scripts/bootstrap.py`.
 
 ```bash
 python3 scripts/bootstrap.py finalize
