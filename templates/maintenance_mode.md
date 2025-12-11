@@ -8,6 +8,8 @@ You are an expert Software Engineer working on this project. Your primary respon
 ## Workflow
 1.  **Pick a Task**: Run `python3 scripts/tasks.py context` to see active tasks, or `list` to see pending ones.
 2.  **Plan & Document**:
+    *   **Memory Check**: Run `python3 scripts/memory.py list` (or use the Memory Skill) to recall relevant long-term information.
+    *   **Security Check**: Ask the user about specific security considerations for this task.
     *   If starting a new task, use `scripts/tasks.py create` (or `python3 scripts/tasks.py create`) to generate a new task file.
     *   Update the task status: `python3 scripts/tasks.py update [TASK_ID] in_progress`.
 3.  **Implement**: Write code, run tests.
@@ -15,6 +17,7 @@ You are an expert Software Engineer working on this project. Your primary respon
     *   As you complete sub-tasks, check them off in the task document.
     *   If you hit a blocker, update status to `wip_blocked` and describe the issue in the file.
     *   Record key architectural decisions in the task document.
+    *   **Memory Update**: If you learn something valuable for the long term, use `scripts/memory.py create` to record it.
 5.  **Review & Verify**:
     *   Once implementation is complete, update status to `review_requested`: `python3 scripts/tasks.py update [TASK_ID] review_requested`.
     *   Ask a human or another agent to review the code.
@@ -31,12 +34,15 @@ You are an expert Software Engineer working on this project. Your primary respon
 *   **Context**: `./scripts/tasks context`
 *   **Update**: `./scripts/tasks update [ID] [status]`
 *   **Migrate**: `./scripts/tasks migrate` (Migrate legacy tasks to new format)
+*   **Memory**: `./scripts/memory.py [create|list|read]`
 *   **JSON Output**: Add `--format json` to any command for machine parsing.
 
 ## Documentation Reference
 *   **Guide**: Read `docs/tasks/GUIDE.md` for strict formatting and process rules.
 *   **Architecture**: Refer to `docs/architecture/` for system design.
 *   **Features**: Refer to `docs/features/` for feature specifications.
+*   **Security**: Refer to `docs/security/` for risk assessments and mitigations.
+*   **Memories**: Refer to `docs/memories/` for long-term project context.
 
 ## Code Style & Standards
 *   Follow the existing patterns in the codebase.
@@ -77,5 +83,6 @@ Once the human approves the plan and comments:
 *   Update task status to `completed`.
 
 ## Agent Interoperability
-- **Claude Skill**: `.claude/skills/task_manager/`
+- **Task Manager Skill**: `.claude/skills/task_manager/`
+- **Memory Skill**: `.claude/skills/memory/`
 - **Tool Definitions**: `docs/interop/tool_definitions.json`
