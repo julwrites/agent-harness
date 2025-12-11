@@ -24,6 +24,7 @@ CATEGORIES = [
     "features",
     "testing",
     "review",
+    "security",
 ]
 
 VALID_STATUSES = [
@@ -60,13 +61,38 @@ def init_docs():
             pass
 
     # Create other doc directories
-    for doc_type in ["architecture", "features"]:
+    for doc_type in ["architecture", "features", "security"]:
         path = os.path.join(REPO_ROOT, "docs", doc_type)
         os.makedirs(path, exist_ok=True)
         readme_path = os.path.join(path, "README.md")
         if not os.path.exists(readme_path):
-             with open(readme_path, "w") as f:
-                f.write(f"# {doc_type.capitalize()} Documentation\n\nAdd {doc_type} documentation here.\n")
+            if doc_type == "security":
+                content = """# Security Documentation
+
+Use this section to document security considerations, risks, and mitigations.
+
+## Risk Assessment
+*   [ ] Threat Model
+*   [ ] Data Privacy
+
+## Compliance
+*   [ ] Requirements
+
+## Secrets Management
+*   [ ] Policy
+"""
+            else:
+                content = f"# {doc_type.capitalize()} Documentation\n\nAdd {doc_type} documentation here.\n"
+
+            with open(readme_path, "w") as f:
+                f.write(content)
+
+    # Create memories directory
+    memories_path = os.path.join(REPO_ROOT, "docs", "memories")
+    os.makedirs(memories_path, exist_ok=True)
+    if not os.path.exists(os.path.join(memories_path, ".keep")):
+        with open(os.path.join(memories_path, ".keep"), "w") as f:
+            pass
 
     print(f"Created directories in {os.path.join(REPO_ROOT, 'docs')}")
 
