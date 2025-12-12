@@ -26,6 +26,7 @@ CATEGORIES = [
     "testing",
     "review",
     "security",
+    "research",
 ]
 
 VALID_STATUSES = [

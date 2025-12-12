@@ -17,7 +17,7 @@ Command: `./scripts/tasks list [--status <status>] [--category <category>] [--fo
 ### Create Task
 Create a new task.
 Command: `./scripts/tasks create <category> "<title>" [--desc "<description>"] [--format json]`
-Categories: foundation, infrastructure, domain, presentation, migration, features, testing
+Categories: foundation, infrastructure, domain, presentation, migration, features, testing, review, security, research
 
 ### Show Task
 Show details of a specific task.
