@@ -420,6 +420,37 @@ def update_task_status(task_id, new_status, output_format="text"):
     with open(filepath, "r") as f:
         content = f.read()
 
+    # Check dependencies if moving to active status
+    if new_status in ["in_progress", "review_requested", "verified", "completed"]:
+        task_data = parse_task_content(content, filepath)
+        deps = task_data.get("dependencies", [])
+        if deps:
+            blocked_by = []
+            for dep_id in deps:
+                # Resolve dependency file
+                dep_path = find_task_file(dep_id)
+                if not dep_path:
+                    blocked_by.append(f"{dep_id} (missing)")
+                    continue
+
+                try:
+                    with open(dep_path, "r") as df:
+                        dep_content = df.read()
+                    dep_data = parse_task_content(dep_content, dep_path)
+
+                    if dep_data["status"] not in ["completed", "verified"]:
+                         blocked_by.append(f"{dep_id} ({dep_data['status']})")
+                except Exception:
+                    blocked_by.append(f"{dep_id} (error reading)")
+
+            if blocked_by:
+                msg = f"Error: Cannot move to '{new_status}' because task is blocked by dependencies: {', '.join(blocked_by)}"
+                if output_format == "json":
+                    print(json.dumps({"error": msg}))
+                else:
+                    print(msg)
+                sys.exit(1)
+
     frontmatter, body = extract_frontmatter(content)
 
     if frontmatter:
