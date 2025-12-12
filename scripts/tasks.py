@@ -422,6 +422,35 @@ def update_task_status(task_id, new_status, output_format="text"):
 
     frontmatter, body = extract_frontmatter(content)
 
+    # Enforce Dependencies
+    if new_status in ["in_progress", "review_requested", "verified", "completed"]:
+        deps = []
+        if frontmatter:
+            deps_str = frontmatter.get("dependencies") or ""
+            deps = [d.strip() for d in deps_str.split(",") if d.strip()]
+
+        for dep_id in deps:
+            dep_path = find_task_file(dep_id)
+            if not dep_path:
+                msg = f"Error: Dependency {dep_id} not found."
+                if output_format == "json":
+                    print(json.dumps({"error": msg}))
+                else:
+                    print(msg)
+                sys.exit(1)
+
+            with open(dep_path, "r") as df:
+                dcontent = df.read()
+            ddata = parse_task_content(dcontent, dep_path)
+
+            if ddata["status"] not in ["completed", "verified"]:
+                 msg = f"Error: Dependency {dep_id} is {ddata['status']}. Must be completed or verified."
+                 if output_format == "json":
+                    print(json.dumps({"error": msg}))
+                 else:
+                    print(msg)
+                 sys.exit(1)
+
     if frontmatter:
         # Update Frontmatter
         lines = content.splitlines()
