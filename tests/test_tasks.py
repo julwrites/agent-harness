@@ -159,5 +159,60 @@ class TestTasks(unittest.TestCase):
         ids = [t['id'] for t in data]
         self.assertIn(task_id, ids)
 
+    def test_enforce_dependencies(self):
+        # Create Task A (Pending)
+        tasks.create_task("foundation", "Task A", "Desc")
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_a = [t for t in data if t['title'] == "Task A"][0]
+        task_a_id = task_a['id']
+
+        # Create Task B (Depends on A)
+        tasks.create_task("foundation", "Task B", "Desc", dependencies=[task_a_id])
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_b = [t for t in data if t['title'] == "Task B"][0]
+        task_b_id = task_b['id']
+
+        # Try to update Task B to in_progress -> Should FAIL because A is pending
+        with self.assertRaises(SystemExit):
+            # Suppress stderr to keep test output clean
+            with patch('sys.stderr', new=StringIO()):
+                tasks.update_task_status(task_b_id, "in_progress")
+
+        # Verify status did not change
+        sys.stdout = StringIO()
+        tasks.show_task(task_b_id, output_format="json")
+        task_b_updated = json.loads(sys.stdout.getvalue())
+        self.assertNotEqual(task_b_updated['status'], "in_progress")
+
+    def test_update_with_satisfied_dependencies(self):
+        # Create Task A (Completed)
+        tasks.create_task("foundation", "Task A", "Desc", status="completed")
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_a = [t for t in data if t['title'] == "Task A"][0]
+        task_a_id = task_a['id']
+
+        # Create Task B (Depends on A)
+        tasks.create_task("foundation", "Task B", "Desc", dependencies=[task_a_id])
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_b = [t for t in data if t['title'] == "Task B"][0]
+        task_b_id = task_b['id']
+
+        # Update Task B to in_progress -> Should SUCCEED
+        tasks.update_task_status(task_b_id, "in_progress")
+
+        # Verify status changed
+        sys.stdout = StringIO()
+        tasks.show_task(task_b_id, output_format="json")
+        task_b_updated = json.loads(sys.stdout.getvalue())
+        self.assertEqual(task_b_updated['status'], "in_progress")
+
 if __name__ == "__main__":
     unittest.main()
