@@ -28,6 +28,19 @@ Update the status of a task.
 Command: `./scripts/tasks update <task_id> <status> [--format json]`
 Valid statuses: pending, in_progress, wip_blocked, review_requested, verified, completed, blocked, cancelled, deferred
 
+### Manage Dependencies
+Link or unlink tasks to manage dependencies.
+- Add Dependency: `./scripts/tasks link <task_id> <dependency_id> [--format json]`
+- Remove Dependency: `./scripts/tasks unlink <task_id> <dependency_id> [--format json]`
+
+### Visualize Tasks
+Visualize the task dependency graph.
+Command: `./scripts/tasks graph [--format json]` (or `visualize`)
+
+### Generate Index
+Generate the task dependency index file (`docs/tasks/INDEX.yaml`).
+Command: `./scripts/tasks index [--format json]`
+
 ### Get Context
 Show currently in-progress tasks.
 Command: `./scripts/tasks context [--format json]`
