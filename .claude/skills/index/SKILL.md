@@ -1,5 +1,5 @@
 ---
-name: index-tracker
+name: index
 description: Manage and query the documentation dependency index. Use this to identify which documents need to be updated when code changes.
 ---
 
