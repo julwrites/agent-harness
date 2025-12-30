@@ -1,59 +1,43 @@
 ---
 name: task-manager
-description: Manage development tasks using the repository's task system. Allows creating, listing, updating, and viewing tasks.
+description: Manage project tasks. Create, list, update, and track dependencies of tasks.
 ---
 
-# Task Manager Skill
+# Task Manager
 
-This skill allows you to manage development tasks tracked in the `docs/tasks/` directory.
-It uses the `scripts/tasks` utility.
+Use this skill to manage the project's task documentation in `docs/tasks/`.
 
-## Commands
+### Create a Task
+```bash
+python3 scripts/tasks.py create "Task Title" --status pending --priority high --type task --estimate "2h"
+```
 
 ### List Tasks
-List all tasks or filter by status/category.
-Command: `./scripts/tasks list [--status <status>] [--category <category>] [--format json]`
+```bash
+# List all pending tasks
+python3 scripts/tasks.py list --status pending
 
-### Create Task
-Create a new task.
-Command: `./scripts/tasks create <category> "<title>" [--desc "<description>"] [--format json]`
-Categories: foundation, infrastructure, domain, presentation, migration, features, testing, review, security, research
+# List tasks in a specific sprint
+python3 scripts/tasks.py list --sprint "Sprint 1"
+```
 
-### Show Task
-Show details of a specific task.
-Command: `./scripts/tasks show <task_id> [--format json]`
-
-### Update Task Status
-Update the status of a task.
-Command: `./scripts/tasks update <task_id> <status> [--format json]`
-Valid statuses: pending, in_progress, wip_blocked, review_requested, verified, completed, blocked, cancelled, deferred
+### Update a Task
+```bash
+python3 scripts/tasks.py update TASK-ID --status in_progress
+```
 
 ### Manage Dependencies
-Link or unlink tasks to manage dependencies.
-- Add Dependency: `./scripts/tasks link <task_id> <dependency_id> [--format json]`
-- Remove Dependency: `./scripts/tasks unlink <task_id> <dependency_id> [--format json]`
+```bash
+python3 scripts/tasks.py link TASK-A TASK-B  # A depends on B
+python3 scripts/tasks.py unlink TASK-A TASK-B
+```
 
-### Visualize Tasks
-Visualize the task dependency graph.
-Command: `./scripts/tasks graph [--format json]` (or `visualize`)
+### View Task Details
+```bash
+python3 scripts/tasks.py show TASK-ID
+```
 
-### Generate Index
-Generate the task dependency index file (`docs/tasks/INDEX.yaml`).
-Command: `./scripts/tasks index [--format json]`
-
-### Get Context
-Show currently in-progress tasks.
-Command: `./scripts/tasks context [--format json]`
-
-### Delete Task
-Delete a task.
-Command: `./scripts/tasks delete <task_id> [--format json]`
-
-### Archive Task
-Archive a completed task.
-Command: `./scripts/tasks archive <task_id> [--format json]`
-
-## Usage Instructions
-- Always use `./scripts/tasks context` to see what is currently being worked on before starting new work.
-- When creating a task, choose the appropriate category.
-- Use `--format json` when you need to parse the output programmatically.
+### Get Next Task Recommendation
+```bash
+python3 scripts/tasks.py next
+```
