@@ -1,6 +1,6 @@
 ---
 id: SECURITY-20260103-162908-WVS
-status: verified
+status: completed
 title: Agent Permission Governance Model
 priority: high
 created: 2026-01-03 16:29:08

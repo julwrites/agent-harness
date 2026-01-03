@@ -11,3 +11,4 @@ venv/
 .agents/registry/*.json
 .agents/messages/**/*.json
 !.agents/**/.keep
+logs/
