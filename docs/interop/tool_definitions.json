@@ -233,6 +233,55 @@
           "properties": {}
         }
       }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "agent_send",
+        "description": "Send a message to another agent or 'public'.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "recipient": {
+              "type": "string",
+              "description": "Agent ID or 'public'."
+            },
+            "message": {
+              "type": "string",
+              "description": "The content of the message."
+            }
+          },
+          "required": ["recipient", "message"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "agent_read",
+        "description": "Read messages from your inbox.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "agent_id": {
+              "type": "string",
+              "description": "Your Agent ID."
+            }
+          },
+          "required": ["agent_id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "agent_list",
+        "description": "List active agents.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
     }
   ]
 }

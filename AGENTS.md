@@ -83,6 +83,15 @@ Once the human approves the plan and comments:
 ### 4. Close Task
 *   Update task status to `completed`.
 
+## Multi-Agent Collaboration
+This project supports multiple agents working in parallel.
+*   **The Hive**: A file-based message bus in `.agents/`.
+*   **Protocol**:
+    1.  **Register**: When starting a session, define your role.
+    2.  **Communicate**: Use `python3 scripts/comm.py send [recipient_id] "Message"` to coordinate.
+    3.  **Check Inbox**: Use `python3 scripts/comm.py read [your_id]` to see if others need you.
+    4.  **No Chat**: Do NOT attempt to use external chat tools. Use the bus.
+
 ## Agent Interoperability
 - **Task Manager Skill**: `.claude/skills/task_manager/`
 - **Memory Skill**: `.claude/skills/memory/`

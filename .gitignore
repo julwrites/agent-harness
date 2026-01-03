@@ -7,3 +7,7 @@ env/
 venv/
 .env
 .DS_Store
+
+.agents/registry/*.json
+.agents/messages/**/*.json
+!.agents/**/.keep

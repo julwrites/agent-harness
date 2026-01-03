@@ -81,6 +81,47 @@ def extract_custom_content(content):
 
     return "\n".join(preamble_lines).strip(), custom_sections
 
+def scaffold():
+    # Create default config if missing
+    if not os.path.exists(CONFIG_FILE):
+        print(f"\nCreating default configuration: {CONFIG_FILE}")
+        yaml.SimpleYaml.save(CONFIG_FILE, config.DEFAULT_CONFIG)
+
+    # Scaffolding for Agents
+    conf = config.get_config(REPO_ROOT)
+    agents_dir = os.path.join(REPO_ROOT, conf["agents"]["bus_dir"])
+    registry_dir = os.path.join(agents_dir, "registry")
+    messages_dir = os.path.join(agents_dir, "messages")
+    public_dir = os.path.join(messages_dir, "public")
+
+    for d in [registry_dir, messages_dir, public_dir]:
+        if not os.path.exists(d):
+            os.makedirs(d, exist_ok=True)
+            # Add .keep file
+            io.write_atomic(os.path.join(d, ".keep"), "")
+            print(f"Created directory: {d}")
+
+    # Update .gitignore if needed
+    gitignore = os.path.join(REPO_ROOT, ".gitignore")
+    if os.path.exists(gitignore):
+        content = io.read_text(gitignore)
+        # Ensure we ignore agent artifacts but keep the structure
+        ignore_rules = [
+            f"{conf['agents']['bus_dir']}/registry/*.json",
+            f"{conf['agents']['bus_dir']}/messages/**/*.json",
+            f"!{conf['agents']['bus_dir']}/**/.keep"
+        ]
+        
+        new_rules = []
+        for rule in ignore_rules:
+            if rule not in content:
+                new_rules.append(rule)
+        
+        if new_rules:
+            with open(gitignore, "a") as f:
+                f.write("\n" + "\n".join(new_rules) + "\n")
+            print(f"Updated .gitignore with agent bus rules.")
+
 def check_state():
     print("Repository Analysis:")
 
@@ -90,6 +131,9 @@ def check_state():
             content = f.read()
         if "BOOTSTRAPPING MODE" not in content:
             print("Status: MAINTENANCE MODE (AGENTS.md is already updated)")
+            # Run scaffolding check silently or explicitly?
+            # For now, let's run it to ensure upgrades get the new folders
+            scaffold()
             print("To list tasks: python3 scripts/tasks.py list")
             return
 
@@ -105,11 +149,8 @@ def check_state():
     hook_path = os.path.join(REPO_ROOT, ".git", "hooks", "pre-commit")
     if not os.path.exists(hook_path):
         print("\nTip: Run 'python3 scripts/tasks.py install-hooks' to enable safety checks.")
-
-    # Create default config if missing
-    if not os.path.exists(CONFIG_FILE):
-        print(f"\nCreating default configuration: {CONFIG_FILE}")
-        yaml.SimpleYaml.save(CONFIG_FILE, config.DEFAULT_CONFIG)
+    
+    scaffold()
 
     print("\nNext Steps:")
     print("1. Run 'python3 scripts/tasks.py init' to scaffold directories.")
