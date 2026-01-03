@@ -10,14 +10,16 @@ import re
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Allow overriding root for testing, similar to tasks.py
 REPO_ROOT = os.getenv("TASKS_REPO_ROOT", os.path.dirname(SCRIPT_DIR))
+sys.path.append(REPO_ROOT)
+from scripts.lib import io
+
 MEMORY_DIR = os.path.join(REPO_ROOT, "docs", "memories")
 
 def init_memory():
     """Ensures the memory directory exists."""
     os.makedirs(MEMORY_DIR, exist_ok=True)
     if not os.path.exists(os.path.join(MEMORY_DIR, ".keep")):
-        with open(os.path.join(MEMORY_DIR, ".keep"), "w") as f:
-            pass
+        io.write_atomic(os.path.join(MEMORY_DIR, ".keep"), "")
 
 def slugify(text):
     """Creates a URL-safe slug from text."""
@@ -57,8 +59,7 @@ created: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     full_content = fm + "\n" + content + "\n"
 
     try:
-        with open(filepath, "w") as f:
-            f.write(full_content)
+        io.write_atomic(filepath, full_content)
 
         if output_format == "json":
             print(json.dumps({
@@ -94,43 +95,42 @@ def list_memories(tag=None, limit=20, output_format="text"):
     for f in files:
         path = os.path.join(MEMORY_DIR, f)
         try:
-            with open(path, "r") as file:
-                content = file.read()
+            content = io.read_text(path)
 
-                # Extract basic info from frontmatter
-                title = "Unknown"
-                date = "Unknown"
-                tags = []
+            # Extract basic info from frontmatter
+            title = "Unknown"
+            date = "Unknown"
+            tags = []
 
-                # Simple regex parsing to avoid YAML dependency
-                m_title = re.search(r'^title:\s*"(.*)"', content, re.MULTILINE)
-                if m_title:
-                    title = m_title.group(1)
-                else:
-                    # Fallback: unquoted title
-                    m_title_uq = re.search(r'^title:\s*(.*)', content, re.MULTILINE)
-                    if m_title_uq: title = m_title_uq.group(1).strip()
+            # Simple regex parsing to avoid YAML dependency
+            m_title = re.search(r'^title:\s*"(.*)"', content, re.MULTILINE)
+            if m_title:
+                title = m_title.group(1)
+            else:
+                # Fallback: unquoted title
+                m_title_uq = re.search(r'^title:\s*(.*)', content, re.MULTILINE)
+                if m_title_uq: title = m_title_uq.group(1).strip()
 
-                m_date = re.search(r'^date:\s*(.*)', content, re.MULTILINE)
-                if m_date: date = m_date.group(1).strip()
+            m_date = re.search(r'^date:\s*(.*)', content, re.MULTILINE)
+            if m_date: date = m_date.group(1).strip()
 
-                m_tags = re.search(r'^tags:\s*(\[.*\])', content, re.MULTILINE)
-                if m_tags:
-                    try:
-                        tags = json.loads(m_tags.group(1))
-                    except:
-                        pass
+            m_tags = re.search(r'^tags:\s*(\[.*\])', content, re.MULTILINE)
+            if m_tags:
+                try:
+                    tags = json.loads(m_tags.group(1))
+                except:
+                    pass
 
-                if tag and tag not in tags:
-                    continue
+            if tag and tag not in tags:
+                continue
 
-                memories.append({
-                    "filename": f,
-                    "title": title,
-                    "date": date,
-                    "tags": tags,
-                    "path": path
-                })
+            memories.append({
+                "filename": f,
+                "title": title,
+                "date": date,
+                "tags": tags,
+                "path": path
+            })
         except Exception:
             # Skip unreadable files
             pass
@@ -182,8 +182,7 @@ def read_memory(filename, output_format="text"):
              sys.exit(1)
 
     try:
-        with open(path, "r") as f:
-            content = f.read()
+        content = io.read_text(path)
 
         if output_format == "json":
             print(json.dumps({"filename": os.path.basename(path), "content": content}))

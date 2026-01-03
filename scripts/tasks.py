@@ -13,6 +13,10 @@ from datetime import datetime
 # Assumes this script is in scripts/
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.getenv("TASKS_REPO_ROOT", os.path.dirname(SCRIPT_DIR))
+sys.path.append(REPO_ROOT) # Enable imports from repo root
+
+from scripts.lib import io
+
 DOCS_DIR = os.path.join(REPO_ROOT, "docs", "tasks")
 TEMPLATES_DIR = os.path.join(REPO_ROOT, "templates")
 
@@ -59,8 +63,7 @@ def init_docs():
         path = os.path.join(DOCS_DIR, category)
         os.makedirs(path, exist_ok=True)
         # Create .keep file to ensure git tracks the directory
-        with open(os.path.join(path, ".keep"), "w") as f:
-            pass
+        io.write_atomic(os.path.join(path, ".keep"), "")
 
     # Copy GUIDE.md if missing
     guide_path = os.path.join(DOCS_DIR, "GUIDE.md")
@@ -93,15 +96,13 @@ Use this section to document security considerations, risks, and mitigations.
             else:
                 content = f"# {doc_type.capitalize()} Documentation\n\nAdd {doc_type} documentation here.\n"
 
-            with open(readme_path, "w") as f:
-                f.write(content)
+            io.write_atomic(readme_path, content)
 
     # Create memories directory
     memories_path = os.path.join(REPO_ROOT, "docs", "memories")
     os.makedirs(memories_path, exist_ok=True)
     if not os.path.exists(os.path.join(memories_path, ".keep")):
-        with open(os.path.join(memories_path, ".keep"), "w") as f:
-            pass
+        io.write_atomic(os.path.join(memories_path, ".keep"), "")
 
     print(f"Created directories in {os.path.join(REPO_ROOT, 'docs')}")
 
@@ -248,8 +249,7 @@ dependencies: {deps_str}
 """
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath, "w") as f:
-        f.write(content)
+    io.write_atomic(filepath, content)
 
     if output_format == "json":
         print(json.dumps({
@@ -299,8 +299,7 @@ def show_task(task_id, output_format="text"):
         sys.exit(1)
 
     try:
-        with open(filepath, "r") as f:
-            content = f.read()
+        content = io.read_text(filepath)
 
         if output_format == "json":
             task_data = parse_task_content(content, filepath)
@@ -432,8 +431,7 @@ def update_task_status(task_id, new_status, output_format="text"):
             print(msg)
         sys.exit(1)
 
-    with open(filepath, "r") as f:
-        content = f.read()
+    content = io.read_text(filepath)
 
     # Check dependencies if moving to active status
     if new_status in ["in_progress", "review_requested", "verified", "completed"]:
@@ -449,8 +447,7 @@ def update_task_status(task_id, new_status, output_format="text"):
                     continue
 
                 try:
-                    with open(dep_path, "r") as df:
-                        dep_content = df.read()
+                    dep_content = io.read_text(dep_path)
                     dep_data = parse_task_content(dep_content, dep_path)
 
                     if dep_data["status"] not in ["completed", "verified"]:
@@ -505,8 +502,7 @@ def update_task_status(task_id, new_status, output_format="text"):
         if output_format == "text":
             print(f"Migrated task {task_id} to new format.")
 
-    with open(filepath, "w") as f:
-        f.write(new_content)
+    io.write_atomic(filepath, new_content)
 
     if output_format == "json":
         print(json.dumps({"success": True, "id": task_id, "status": new_status}))
@@ -515,8 +511,7 @@ def update_task_status(task_id, new_status, output_format="text"):
 
 def update_frontmatter_field(filepath, field, value):
     """Updates a specific field in the frontmatter."""
-    with open(filepath, "r") as f:
-        content = f.read()
+    content = io.read_text(filepath)
 
     frontmatter, body = extract_frontmatter(content)
     if not frontmatter:
@@ -524,8 +519,7 @@ def update_frontmatter_field(filepath, field, value):
         task_data = parse_task_content(content, filepath)
         task_data[field] = value
         new_content = migrate_to_frontmatter(content, task_data)
-        with open(filepath, "w") as f:
-            f.write(new_content)
+        io.write_atomic(filepath, new_content)
         return True
 
     # Update Frontmatter line-by-line to preserve comments/order
@@ -564,8 +558,7 @@ def update_frontmatter_field(filepath, field, value):
             new_lines.append(line)
 
     new_content = "\n".join(new_lines) + "\n"
-    with open(filepath, "w") as f:
-        f.write(new_content)
+    io.write_atomic(filepath, new_content)
     return True
 
 def add_dependency(task_id, dep_id, output_format="text"):
@@ -581,8 +574,7 @@ def add_dependency(task_id, dep_id, output_format="text"):
          print(json.dumps({"error": msg}) if output_format == "json" else msg)
          sys.exit(1)
 
-    with open(filepath, "r") as f:
-        content = f.read()
+    content = io.read_text(filepath)
 
     task_data = parse_task_content(content, filepath)
     deps = task_data.get("dependencies", [])
@@ -605,8 +597,7 @@ def remove_dependency(task_id, dep_id, output_format="text"):
         print(json.dumps({"error": msg}) if output_format == "json" else msg)
         sys.exit(1)
 
-    with open(filepath, "r") as f:
-        content = f.read()
+    content = io.read_text(filepath)
 
     task_data = parse_task_content(content, filepath)
     deps = task_data.get("dependencies", [])
@@ -635,8 +626,7 @@ def generate_index(output_format="text"):
                 continue
             path = os.path.join(root, file)
             try:
-                with open(path, "r") as f:
-                    content = f.read()
+                content = io.read_text(path)
                 task = parse_task_content(content, path)
                 if task["id"] != "unknown":
                     all_tasks[task["id"]] = path
@@ -665,8 +655,7 @@ def generate_index(output_format="text"):
 
         yaml_lines.append("")
 
-    with open(index_path, "w") as f:
-        f.write("\n".join(yaml_lines))
+    io.write_atomic(index_path, "\n".join(yaml_lines))
 
     msg = f"Generated index at {index_path}"
     print(json.dumps({"success": True, "path": index_path}) if output_format == "json" else msg)
@@ -693,8 +682,7 @@ def list_tasks(status=None, category=None, sprint=None, include_archived=False, 
 
             path = os.path.join(root, file)
             try:
-                with open(path, "r") as f:
-                    content = f.read()
+                content = io.read_text(path)
             except Exception as e:
                 if output_format == "text":
                     print(f"Error reading {path}: {e}")
@@ -742,8 +730,7 @@ def migrate_all():
                 continue
 
             path = os.path.join(root, file)
-            with open(path, "r") as f:
-                content = f.read()
+            content = io.read_text(path)
 
             if content.startswith("---\n") or content.startswith("--- "):
                 continue # Already migrated (simple check)
@@ -753,8 +740,7 @@ def migrate_all():
                 continue
 
             new_content = migrate_to_frontmatter(content, task_data)
-            with open(path, "w") as f:
-                f.write(new_content)
+            io.write_atomic(path, new_content)
 
             print(f"Migrated {task_data['id']}")
             count += 1
@@ -773,8 +759,7 @@ def validate_all(output_format="text"):
                 continue
             path = os.path.join(root, file)
             try:
-                with open(path, "r") as f:
-                    content = f.read()
+                content = io.read_text(path)
 
                 # Check 1: Frontmatter exists
                 frontmatter, body = extract_frontmatter(content)
@@ -875,8 +860,7 @@ def visualize_tasks(output_format="text"):
                 continue
             path = os.path.join(root, file)
             try:
-                with open(path, "r") as f:
-                    content = f.read()
+                content = io.read_text(path)
                 task = parse_task_content(content, path)
                 if task["id"] != "unknown":
                     tasks.append(task)
@@ -933,8 +917,7 @@ def get_next_task(output_format="text"):
                 continue
             path = os.path.join(root, file)
             try:
-                with open(path, "r") as f:
-                    content = f.read()
+                content = io.read_text(path)
                 task = parse_task_content(content, path)
                 if task["id"] != "unknown":
                     all_tasks[task["id"]] = task
@@ -1036,8 +1019,7 @@ python3 {script_path} validate --format text
 """
 
     try:
-        with open(hook_path, "w") as f:
-            f.write(hook_content)
+        io.write_atomic(hook_path, hook_content)
         os.chmod(hook_path, 0o755)
         print(f"Installed pre-commit hook at {hook_path}")
     except Exception as e:
