@@ -1,286 +1,337 @@
 {
   "tools": [
     {
-      "type": "function",
-      "function": {
-        "name": "task_create",
-        "description": "Create a new development task.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "category": {
-              "type": "string",
-              "enum": ["foundation", "infrastructure", "domain", "presentation", "migration", "features", "testing"],
-              "description": "The category of the task."
-            },
-            "title": {
-              "type": "string",
-              "description": "The title of the task."
-            },
-            "description": {
-              "type": "string",
-              "description": "Detailed description of the task."
-            }
+      "name": "task_create",
+      "description": "Create a new development task.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/tasks.py create {category} \"{title}\" --desc \"{description}\"",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "foundation",
+              "infrastructure",
+              "domain",
+              "presentation",
+              "migration",
+              "features",
+              "testing",
+              "review",
+              "security",
+              "research"
+            ],
+            "description": "The category of the task."
           },
-          "required": ["category", "title"]
-        }
+          "title": {
+            "type": "string",
+            "description": "The title of the task."
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the task."
+          }
+        },
+        "required": [
+          "category",
+          "title"
+        ]
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "task_list",
-        "description": "List existing tasks, optionally filtered by status or category.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "enum": ["pending", "in_progress", "wip_blocked", "review_requested", "verified", "completed", "blocked", "cancelled", "deferred"],
-              "description": "Filter by task status."
-            },
-            "category": {
-              "type": "string",
-              "enum": ["foundation", "infrastructure", "domain", "presentation", "migration", "features", "testing"],
-              "description": "Filter by task category."
-            },
-            "archived": {
-              "type": "boolean",
-              "description": "Include archived tasks in the list."
-            }
+      "name": "task_list",
+      "description": "List existing tasks, optionally filtered by status or category.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/tasks.py list --status {status} --category {category}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "wip_blocked",
+              "review_requested",
+              "verified",
+              "completed",
+              "blocked",
+              "cancelled",
+              "deferred"
+            ],
+            "description": "Filter by task status."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "foundation",
+              "infrastructure",
+              "domain",
+              "presentation",
+              "migration",
+              "features",
+              "testing",
+              "review",
+              "security",
+              "research"
+            ],
+            "description": "Filter by task category."
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Include archived tasks in the list."
           }
         }
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "task_update",
-        "description": "Update the status of an existing task.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "task_id": {
-              "type": "string",
-              "description": "The ID of the task (e.g., FOUNDATION-20230521-120000)."
-            },
-            "status": {
-              "type": "string",
-              "enum": ["pending", "in_progress", "wip_blocked", "review_requested", "verified", "completed", "blocked", "cancelled", "deferred"],
-              "description": "The new status of the task."
-            }
+      "name": "task_update",
+      "description": "Update the status of an existing task.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/tasks.py update {task_id} {status}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The ID of the task (e.g., FOUNDATION-20230521-120000)."
           },
-          "required": ["task_id", "status"]
-        }
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "wip_blocked",
+              "review_requested",
+              "verified",
+              "completed",
+              "blocked",
+              "cancelled",
+              "deferred"
+            ],
+            "description": "The new status of the task."
+          }
+        },
+        "required": [
+          "task_id",
+          "status"
+        ]
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "task_show",
-        "description": "Show the details of a specific task.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "task_id": {
-              "type": "string",
-              "description": "The ID of the task."
-            }
+      "name": "task_show",
+      "description": "Show the details of a specific task.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/tasks.py show {task_id}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The ID of the task."
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      }
+    },
+    {
+      "name": "task_context",
+      "description": "Show tasks that are currently in progress.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/tasks.py context",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "task_archive",
+      "description": "Archive a completed task.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/tasks.py archive {task_id}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The ID of the task to archive."
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      }
+    },
+    {
+      "name": "memory_create",
+      "description": "Create a new long-term memory.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/memory.py create \"{title}\" \"{content}\" --tags \"{tags}\"",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The title of the memory."
           },
-          "required": ["task_id"]
-        }
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "task_context",
-        "description": "Show tasks that are currently in progress.",
-        "parameters": {
-          "type": "object",
-          "properties": {}
-        }
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "task_archive",
-        "description": "Archive a completed task.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "task_id": {
-              "type": "string",
-              "description": "The ID of the task to archive."
-            }
+          "content": {
+            "type": "string",
+            "description": "The content of the memory."
           },
-          "required": ["task_id"]
-        }
+          "tags": {
+            "type": "string",
+            "description": "Comma-separated tags for the memory."
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ]
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "memory_create",
-        "description": "Create a new long-term memory.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "description": "The title of the memory."
-            },
-            "content": {
-              "type": "string",
-              "description": "The content of the memory."
-            },
-            "tags": {
-              "type": "string",
-              "description": "Comma-separated tags for the memory."
-            }
+      "name": "memory_list",
+      "description": "List existing memories, optionally filtered by tag.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/memory.py list --tag {tag} --limit {limit}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "Filter by tag."
           },
-          "required": ["title", "content"]
-        }
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "memory_list",
-        "description": "List existing memories, optionally filtered by tag.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "tag": {
-              "type": "string",
-              "description": "Filter by tag."
-            },
-            "limit": {
-              "type": "integer",
-              "description": "Limit the number of results."
-            }
+          "limit": {
+            "type": "integer",
+            "description": "Limit the number of results."
           }
         }
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "memory_read",
-        "description": "Read a specific memory.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "filename": {
-              "type": "string",
-              "description": "The filename or slug of the memory to read."
-            }
+      "name": "memory_read",
+      "description": "Read a specific memory.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/memory.py read {filename}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "The filename or slug of the memory to read."
+          }
+        },
+        "required": [
+          "filename"
+        ]
+      }
+    },
+    {
+      "name": "index_impact",
+      "description": "Check impact of a file change on documentation.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/index.py impact {file}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The file path to check impact for."
+          }
+        },
+        "required": [
+          "file"
+        ]
+      }
+    },
+    {
+      "name": "index_add",
+      "description": "Add or update a documentation index entry.",
+      "risk_level": "L2",
+      "implementation": "python3 scripts/index.py add {doc} --related \"{related}\" --depends \"{depends}\"",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "doc": {
+            "type": "string",
+            "description": "Path to the document."
           },
-          "required": ["filename"]
-        }
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "index_impact",
-        "description": "Check impact of a file change on documentation.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "file": {
-              "type": "string",
-              "description": "The file path to check impact for."
-            }
+          "related": {
+            "type": "string",
+            "description": "Comma-separated list of related files."
           },
-          "required": ["file"]
-        }
+          "depends": {
+            "type": "string",
+            "description": "Comma-separated list of dependency documents."
+          }
+        },
+        "required": [
+          "doc"
+        ]
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "index_add",
-        "description": "Add or update a documentation index entry.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "doc": {
-              "type": "string",
-              "description": "Path to the document."
-            },
-            "related": {
-              "type": "string",
-              "description": "Comma-separated list of related files."
-            },
-            "depends": {
-              "type": "string",
-              "description": "Comma-separated list of dependency documents."
-            }
+      "name": "index_check",
+      "description": "Check integrity of the documentation index.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/index.py check",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "agent_send",
+      "description": "Send a message to another agent or \"public\".",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/comm.py send {recipient} \"{message}\"",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "recipient": {
+            "type": "string",
+            "description": "Agent ID or \"public\"."
           },
-          "required": ["doc"]
-        }
+          "message": {
+            "type": "string",
+            "description": "The content of the message."
+          }
+        },
+        "required": [
+          "recipient",
+          "message"
+        ]
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "index_check",
-        "description": "Check integrity of the documentation index.",
-        "parameters": {
-          "type": "object",
-          "properties": {}
-        }
+      "name": "agent_read",
+      "description": "Read messages from your inbox.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/comm.py read {agent_id}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "description": "Your Agent ID."
+          }
+        },
+        "required": [
+          "agent_id"
+        ]
       }
     },
     {
-      "type": "function",
-      "function": {
-        "name": "agent_send",
-        "description": "Send a message to another agent or 'public'.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "recipient": {
-              "type": "string",
-              "description": "Agent ID or 'public'."
-            },
-            "message": {
-              "type": "string",
-              "description": "The content of the message."
-            }
-          },
-          "required": ["recipient", "message"]
-        }
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "agent_read",
-        "description": "Read messages from your inbox.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "agent_id": {
-              "type": "string",
-              "description": "Your Agent ID."
-            }
-          },
-          "required": ["agent_id"]
-        }
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "agent_list",
-        "description": "List active agents.",
-        "parameters": {
-          "type": "object",
-          "properties": {}
-        }
+      "name": "agent_list",
+      "description": "List active agents.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/comm.py list",
+      "parameters": {
+        "type": "object",
+        "properties": {}
       }
     }
   ]

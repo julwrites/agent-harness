@@ -28,6 +28,7 @@ You are an expert Software Engineer working on this project. Your primary respon
     *   Ensure all acceptance criteria are met.
 
 ## Tools
+*   **Reference**: Refer to `docs/interop/TOOLS.md` for a complete list of available tools, their risk levels, and usage instructions.
 *   **Wrapper**: `./scripts/tasks` (Checks for Python, recommended).
 *   **Next**: `./scripts/tasks next` (Finds the best task to work on).
 *   **Create**: `./scripts/tasks create [category] "Title"`
