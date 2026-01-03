@@ -1,0 +1,36 @@
+project:
+  name: AgentHarness
+  root: .
+
+tasks:
+  dir: docs/tasks
+  categories:
+    - foundation
+    - infrastructure
+    - domain
+    - presentation
+    - migration
+    - features
+    - testing
+    - review
+    - security
+    - research
+  statuses:
+    - pending
+    - in_progress
+    - wip_blocked
+    - review_requested
+    - verified
+    - completed
+    - blocked
+    - cancelled
+    - deferred
+  types:
+    - epic
+    - story
+    - task
+    - bug
+
+agents:
+  bus_dir: .agents
+  audit_log: logs/audit.jsonl

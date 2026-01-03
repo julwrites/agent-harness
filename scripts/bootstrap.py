@@ -6,9 +6,14 @@ import subprocess
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+sys.path.append(REPO_ROOT)
+
+from scripts.lib import io, yaml, config
+
 AGENTS_FILE = os.path.join(REPO_ROOT, "AGENTS.md")
 CLAUDE_FILE = os.path.join(REPO_ROOT, "CLAUDE.md")
 TEMPLATE_MAINTENANCE = os.path.join(REPO_ROOT, "templates", "maintenance_mode.md")
+CONFIG_FILE = os.path.join(REPO_ROOT, "harness.config.yaml")
 
 STANDARD_HEADERS = [
     "Helper Scripts",
@@ -100,6 +105,11 @@ def check_state():
     hook_path = os.path.join(REPO_ROOT, ".git", "hooks", "pre-commit")
     if not os.path.exists(hook_path):
         print("\nTip: Run 'python3 scripts/tasks.py install-hooks' to enable safety checks.")
+
+    # Create default config if missing
+    if not os.path.exists(CONFIG_FILE):
+        print(f"\nCreating default configuration: {CONFIG_FILE}")
+        yaml.SimpleYaml.save(CONFIG_FILE, config.DEFAULT_CONFIG)
 
     print("\nNext Steps:")
     print("1. Run 'python3 scripts/tasks.py init' to scaffold directories.")

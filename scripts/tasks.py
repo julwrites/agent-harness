@@ -16,41 +16,17 @@ REPO_ROOT = os.getenv("TASKS_REPO_ROOT", os.path.dirname(SCRIPT_DIR))
 sys.path.append(REPO_ROOT) # Enable imports from repo root
 
 from scripts.lib import io
+from scripts.lib.config import get_config
 
-DOCS_DIR = os.path.join(REPO_ROOT, "docs", "tasks")
+# Load Configuration
+config = get_config(REPO_ROOT)
+
+DOCS_DIR = os.path.join(REPO_ROOT, config["tasks"]["dir"])
 TEMPLATES_DIR = os.path.join(REPO_ROOT, "templates")
 
-CATEGORIES = [
-    "foundation",
-    "infrastructure",
-    "domain",
-    "presentation",
-    "migration",
-    "features",
-    "testing",
-    "review",
-    "security",
-    "research",
-]
-
-VALID_STATUSES = [
-    "pending",
-    "in_progress",
-    "wip_blocked",
-    "review_requested",
-    "verified",
-    "completed",
-    "blocked",
-    "cancelled",
-    "deferred"
-]
-
-VALID_TYPES = [
-    "epic",
-    "story",
-    "task",
-    "bug"
-]
+CATEGORIES = config["tasks"]["categories"]
+VALID_STATUSES = config["tasks"]["statuses"]
+VALID_TYPES = config["tasks"]["types"]
 
 ARCHIVE_DIR_NAME = "archive"
 
