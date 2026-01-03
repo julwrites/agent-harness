@@ -89,6 +89,27 @@ def scaffold():
 
     # Scaffolding for Agents
     conf = config.get_config(REPO_ROOT)
+    
+    # Ensure security dir exists for permissions
+    security_dir = os.path.join(REPO_ROOT, "docs", "security")
+    os.makedirs(security_dir, exist_ok=True)
+    permissions_file = os.path.join(security_dir, "PERMISSIONS.md")
+    if not os.path.exists(permissions_file):
+        # Create a simple default
+        content = """# Agent Permissions
+
+| Level | Name | Description |
+| :--- | :--- | :--- |
+| **L0** | **Viewer** | Read-only |
+| **L1** | **Contributor** | Docs/Tasks |
+| **L2** | **Developer** | Source Code |
+| **L3** | **Admin** | Irreversible |
+
+*Default Level: L2*
+"""
+        io.write_atomic(permissions_file, content)
+        print(f"Created default permissions policy: {permissions_file}")
+
     agents_dir = os.path.join(REPO_ROOT, conf["agents"]["bus_dir"])
     registry_dir = os.path.join(agents_dir, "registry")
     messages_dir = os.path.join(agents_dir, "messages")

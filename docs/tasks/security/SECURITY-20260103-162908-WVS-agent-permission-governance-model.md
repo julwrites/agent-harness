@@ -1,11 +1,11 @@
 ---
 id: SECURITY-20260103-162908-WVS
-status: pending
+status: verified
 title: Agent Permission Governance Model
 priority: high
 created: 2026-01-03 16:29:08
 category: security
-dependencies: INFRASTRUCTURE-20260103-162908-HOE-universal-tool-generation-pipeline
+dependencies: INFRASTRUCTURE-20260103-162908-HOE
 type: feature
 ---
 

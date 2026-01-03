@@ -93,6 +93,12 @@ This project supports multiple agents working in parallel.
     3.  **Check Inbox**: Use `python3 scripts/comm.py read [your_id]` to see if others need you.
     4.  **No Chat**: Do NOT attempt to use external chat tools. Use the bus.
 
+## Permission Protocol
+You must operate within the boundaries defined in `docs/security/PERMISSIONS.md`.
+1.  **Check Risk**: Every tool has a `risk_level` defined in `docs/interop/TOOLS.md`.
+2.  **Self-Regulate**: If a tool's `risk_level` exceeds your assigned authorization (Default: L2), you MUST propose the action and wait for explicit human confirmation.
+3.  **L3 Actions**: Any action involving deletion (`rm`), remote pushing (`git push`), or credential access is L3 and ALWAYS requires confirmation.
+
 ## Agent Interoperability
 - **Task Manager Skill**: `.claude/skills/task_manager/`
 - **Memory Skill**: `.claude/skills/memory/`
