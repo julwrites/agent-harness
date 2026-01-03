@@ -6,7 +6,7 @@ priority: high
 created: 2026-01-03 16:42:55
 category: infrastructure
 dependencies: 
-type: feature
+type: story
 ---
 
 # Central Configuration System

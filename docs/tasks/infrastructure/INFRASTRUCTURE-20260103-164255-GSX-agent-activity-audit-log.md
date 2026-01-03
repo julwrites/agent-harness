@@ -6,7 +6,7 @@ priority: medium
 created: 2026-01-03 16:42:55
 category: infrastructure
 dependencies: INFRASTRUCTURE-20260103-164255-PVU
-type: feature
+type: story
 ---
 
 # Agent Activity Audit Log

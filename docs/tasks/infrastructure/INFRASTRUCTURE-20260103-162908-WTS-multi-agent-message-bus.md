@@ -6,7 +6,7 @@ priority: high
 created: 2026-01-03 16:29:08
 category: infrastructure
 dependencies: 
-type: feature
+type: story
 ---
 
 # Multi-Agent Message Bus

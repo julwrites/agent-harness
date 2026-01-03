@@ -6,7 +6,7 @@ priority: high
 created: 2026-01-03 16:29:08
 category: security
 dependencies: INFRASTRUCTURE-20260103-162908-HOE
-type: feature
+type: story
 ---
 
 # Agent Permission Governance Model

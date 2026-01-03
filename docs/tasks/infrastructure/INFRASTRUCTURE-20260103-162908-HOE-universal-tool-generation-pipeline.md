@@ -6,7 +6,7 @@ priority: medium
 created: 2026-01-03 16:29:08
 category: infrastructure
 dependencies: 
-type: feature
+type: story
 ---
 
 # Universal Tool Generation Pipeline
