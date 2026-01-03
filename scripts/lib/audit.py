@@ -28,13 +28,19 @@ def log_activity(action, args=None, agent_id=None, result="success"):
         "result": result
     }
     
+    # Helper for JSON serialization of complex objects
+    def serialize(obj):
+        try:
+            return json.dumps(obj)
+        except (TypeError, OverflowError):
+            return str(obj)
+
     # Append to JSONL file
-    # We use a simple file append here. 
-    # Atomic write is for full file replacement, but JSONL is append-only.
-    # Standard file append is usually atomic for small writes (< 4kb) on POSIX.
     try:
+        # Use a custom default or pre-process entry to ensure serializability
+        safe_entry = json.loads(json.dumps(entry, default=lambda o: str(o)))
         with open(log_path, "a") as f:
-            f.write(json.dumps(entry) + "\n")
+            f.write(json.dumps(safe_entry) + "\n")
     except Exception as e:
         print(f"Warning: Failed to write to audit log: {e}")
 
