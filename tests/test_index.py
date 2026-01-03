@@ -87,8 +87,11 @@ class TestIndex(unittest.TestCase):
     def test_check_integrity(self):
         index.init_index()
         # Case 1: Integrity Check Fails
+        # Note: SimpleYaml parses "related: []" as a string "[]" instead of empty list.
+        # We must use correct format for empty lists (just empty value or omit)
+        # However, to trigger integrity error, we want it to point to non-existent files.
         with open(self.index_file, "w") as f:
-            f.write("invalid.md:\n  related: []\n  depends_on: []\n")
+            f.write("invalid.md:\n  related:\n  - missing_rel.md\n  depends_on:\n  - missing_dep.md\n")
 
         with self.assertRaises(SystemExit):
              index.check_integrity()
