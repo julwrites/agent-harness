@@ -17,6 +17,7 @@ sys.path.append(REPO_ROOT) # Enable imports from repo root
 
 from scripts.lib import io
 from scripts.lib.config import get_config
+from scripts.lib import audit
 
 # Load Configuration
 config = get_config(REPO_ROOT)
@@ -178,6 +179,7 @@ def parse_task_content(content, filepath=None):
         "content": content
     }
 
+@audit.audit_log("task_create")
 def create_task(category, title, description, priority="medium", status="pending", dependencies=None, task_type="task", sprint="", estimate="", output_format="text"):
     if category not in CATEGORIES:
         msg = f"Error: Category '{category}' not found. Available: {', '.join(CATEGORIES)}"
@@ -389,6 +391,7 @@ category: unknown
 """
     return new_content
 
+@audit.audit_log("task_update")
 def update_task_status(task_id, new_status, output_format="text"):
     if new_status not in VALID_STATUSES:
          msg = f"Error: Invalid status '{new_status}'. Valid statuses: {', '.join(VALID_STATUSES)}"

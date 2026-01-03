@@ -12,7 +12,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.getenv("TASKS_REPO_ROOT", os.path.dirname(SCRIPT_DIR))
 sys.path.append(REPO_ROOT)
 
-from scripts.lib import io, config
+from scripts.lib import io, config, audit
 
 class Comm:
     def __init__(self, agent_id=None, role="unknown"):
@@ -55,6 +55,7 @@ class Comm:
                     pass
         return agents
 
+    @audit.audit_log("agent_send")
     def send(self, recipient_id, content, type="text", metadata=None):
         """Send a message to another agent."""
         if recipient_id == "public":
@@ -86,6 +87,7 @@ class Comm:
         io.write_json(path, message)
         return msg_id
 
+    @audit.audit_log("agent_read")
     def read(self, limit=10):
         """Read messages from inbox."""
         mailbox = os.path.join(self.messages_dir, self.agent_id)
