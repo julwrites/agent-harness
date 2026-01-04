@@ -9,6 +9,7 @@ import datetime
 import heapq
 import hmac
 import hashlib
+import shutil
 
 # Setup paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -85,8 +86,67 @@ class Comm:
                     pass
         return agents
 
+    def check_health(self):
+        """Check system health."""
+        health = {
+            "status": "ok",
+            "timestamp": datetime.datetime.now().isoformat(),
+            "checks": {}
+        }
+        
+        # 1. Directories
+        dirs = [self.bus_dir, self.registry_dir, self.messages_dir]
+        for d in dirs:
+            if not os.path.exists(d):
+                health["status"] = "degraded"
+                health["checks"][d] = "missing"
+            elif not os.access(d, os.R_OK | os.W_OK):
+                health["status"] = "degraded"
+                health["checks"][d] = "permission_error"
+            else:
+                health["checks"][d] = "ok"
+
+        # 2. Disk Space
+        try:
+            total, used, free = shutil.disk_usage(self.bus_dir)
+            health["disk"] = {
+                "total_gb": total // (1024**3),
+                "free_gb": free // (1024**3),
+                "percent_free": (free / total) * 100
+            }
+            if health["disk"]["percent_free"] < 10:
+                health["status"] = "warning"
+                health["checks"]["disk"] = "low_space"
+        except:
+            pass
+
+        return health
+
+    def get_metrics(self):
+        """Collect metrics."""
+        metrics = {
+            "agent_count": 0,
+            "message_count": 0,
+            "dlq_count": 0
+        }
+        
+        # Agents
+        if os.path.exists(self.registry_dir):
+            metrics["agent_count"] = len([f for f in os.listdir(self.registry_dir) if f.endswith(".json")])
+            
+        # Messages (estimate)
+        if os.path.exists(self.messages_dir):
+            for root, dirs, files in os.walk(self.messages_dir):
+                if "archive" in root: continue
+                if "dlq" in root:
+                    metrics["dlq_count"] += len([f for f in files if f.endswith(".json") or f.endswith(".gz")])
+                else:
+                    metrics["message_count"] += len([f for f in files if f.endswith(".json") or f.endswith(".gz")])
+                    
+        return metrics
+
     @audit.audit_log("agent_send")
-    def send(self, recipient_id, content, type="text", metadata=None, ttl=None, request_receipt=False, retry_count=3, compress=False, encrypt=False):
+    def send(self, recipient_id, content, type="text", metadata=None, ttl=None, request_receipt=False, retry_count=3, compress=False, encrypt=False, priority="normal"):
         """Send a message to another agent."""
         # Rate Limiting
         now = time.time()
@@ -121,9 +181,10 @@ class Comm:
         if encrypt:
             metadata["encrypted"] = True
             content = f"ENC:{content}" # Mock encryption
+        
+        metadata["priority"] = priority
 
         # Sign
-        # Signature covers content + timestamp + id
         payload = f"{msg_id}{timestamp}{content}"
         metadata["sig"] = self.security.sign(payload)
 
@@ -156,10 +217,7 @@ class Comm:
         return msg_id
 
     def send_batch(self, messages):
-        """
-        Send multiple messages.
-        messages: list of dicts with keys (recipient, content, type, metadata, etc.)
-        """
+        """Send multiple messages."""
         results = []
         for msg in messages:
             try:
@@ -170,7 +228,8 @@ class Comm:
                     metadata=msg.get("metadata"),
                     ttl=msg.get("ttl"),
                     request_receipt=msg.get("request_receipt", False),
-                    compress=msg.get("compress", False)
+                    compress=msg.get("compress", False),
+                    priority=msg.get("priority", "normal")
                 )
                 results.append(mid)
             except Exception as e:
@@ -283,7 +342,15 @@ class Comm:
              public_results = process_box(public_box, is_public=True)
              results.extend(public_results)
 
-        results.sort(key=lambda x: x["timestamp"])
+        # Sort by Priority (urgent=0, normal=1, low=2) then Timestamp
+        def get_sort_key(x):
+            p = x.get("metadata", {}).get("priority", "normal")
+            p_val = 1
+            if p == "urgent": p_val = 0
+            elif p == "low": p_val = 2
+            return (p_val, x["timestamp"])
+
+        results.sort(key=get_sort_key)
         return results[:limit]
 
     def cleanup_archive(self, max_age_days=30):
@@ -390,6 +457,7 @@ def main():
     send.add_argument("--receipt", action="store_true", help="Request receipt")
     send.add_argument("--compress", action="store_true", help="Compress message")
     send.add_argument("--encrypt", action="store_true", help="Encrypt message")
+    send.add_argument("--priority", choices=["urgent", "normal", "low"], default="normal", help="Message priority")
 
     # Read
     read = subparsers.add_parser("read", help="Read messages")
@@ -405,13 +473,17 @@ def main():
     # Cleanup
     clean = subparsers.add_parser("cleanup", help="Cleanup archive")
     clean.add_argument("--days", type=int, default=30, help="Max age in days")
+    
+    # Health & Metrics
+    subparsers.add_parser("health", help="Check system health")
+    subparsers.add_parser("metrics", help="Show system metrics")
 
     args = parser.parse_args()
 
     if args.command == "send":
         comm = Comm(agent_id=args.from_id)
         comm.register()
-        comm.send(args.recipient, args.message, ttl=args.ttl, request_receipt=args.receipt, compress=args.compress, encrypt=args.encrypt)
+        comm.send(args.recipient, args.message, ttl=args.ttl, request_receipt=args.receipt, compress=args.compress, encrypt=args.encrypt, priority=args.priority)
         print("Message sent.")
 
     elif args.command == "read":
@@ -433,6 +505,23 @@ def main():
         comm = Comm()
         count = comm.cleanup_archive(max_age_days=args.days)
         print(f"Cleaned {count} archived files.")
+        
+    elif args.command == "health":
+        comm = Comm()
+        print(json.dumps(comm.check_health(), indent=2))
+        
+    elif args.command == "metrics":
+        comm = Comm()
+        m = comm.get_metrics()
+        print(f"# HELP agent_count Number of active agents")
+        print(f"# TYPE agent_count gauge")
+        print(f"agent_count {m['agent_count']}")
+        print(f"# HELP message_count Number of messages in system")
+        print(f"# TYPE message_count gauge")
+        print(f"message_count {m['message_count']}")
+        print(f"# HELP dlq_count Number of messages in DLQ")
+        print(f"# TYPE dlq_count gauge")
+        print(f"dlq_count {m['dlq_count']}")
     
     else:
         parser.print_help()
