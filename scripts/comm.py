@@ -6,6 +6,7 @@ import time
 import uuid
 import argparse
 import datetime
+import heapq
 
 # Setup paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -67,7 +68,7 @@ class Comm:
         return agents
 
     @audit.audit_log("agent_send")
-    def send(self, recipient_id, content, type="text", metadata=None, ttl=None, request_receipt=False, retry_count=3):
+    def send(self, recipient_id, content, type="text", metadata=None, ttl=None, request_receipt=False, retry_count=3, compress=False):
         """Send a message to another agent."""
         if recipient_id == "public":
             target_dir = os.path.join(self.messages_dir, "public")
@@ -84,6 +85,8 @@ class Comm:
             metadata["ttl"] = ttl
         if request_receipt:
             metadata["request_receipt"] = True
+        if compress:
+            metadata["compression"] = "gzip"
 
         message = {
             "id": msg_id,
@@ -96,6 +99,9 @@ class Comm:
         }
         
         filename = f"{time.time()}_{msg_id}.json"
+        if compress:
+            filename += ".gz"
+            
         path = os.path.join(target_dir, filename)
         
         # Retry logic for delivery
@@ -109,6 +115,28 @@ class Comm:
                 time.sleep(0.5 * (2 ** attempt))
                 
         return msg_id
+
+    def send_batch(self, messages):
+        """
+        Send multiple messages.
+        messages: list of dicts with keys (recipient, content, type, metadata, etc.)
+        """
+        results = []
+        for msg in messages:
+            try:
+                mid = self.send(
+                    msg.get("recipient"),
+                    msg.get("content"),
+                    type=msg.get("type", "text"),
+                    metadata=msg.get("metadata"),
+                    ttl=msg.get("ttl"),
+                    request_receipt=msg.get("request_receipt", False),
+                    compress=msg.get("compress", False)
+                )
+                results.append(mid)
+            except Exception as e:
+                results.append(None)
+        return results
 
     @audit.audit_log("agent_read")
     def read(self, limit=10):
@@ -124,8 +152,16 @@ class Comm:
                 return found_msgs
             
             try:
-                files = sorted([f for f in os.listdir(source_dir) if f.endswith(".json")])
-            except FileNotFoundError:
+                # Optimized listing with scandir and heap
+                def valid_file(e):
+                    return e.is_file() and (e.name.endswith(".json") or e.name.endswith(".json.gz"))
+
+                with os.scandir(source_dir) as it:
+                    # Get top files by name (timestamp)
+                    # We fetch 2x limit to account for skips
+                    entries = heapq.nsmallest(limit * 2, (e for e in it if valid_file(e)), key=lambda e: e.name)
+                    files = [e.name for e in entries]
+            except OSError:
                 return found_msgs
 
             for f in files:
@@ -169,27 +205,23 @@ class Comm:
                             continue
                     except Exception as e:
                         print(f"TTL Check Error: {e}", file=sys.stderr)
-                        pass # Invalid TTL format, ignore or DLQ?
+                        pass 
 
                 # Idempotency Check
                 msg_id = data.get("id")
                 if msg_id in processed_ids:
-                    # Already processed
-                    # We might want to just skip adding to results, but it's already archived.
                     continue
                 
-                # Update processed IDs
                 processed_ids.add(msg_id)
                 self._save_processed_id(msg_id)
 
                 # Receipt
                 if data.get("metadata", {}).get("request_receipt"):
                     try:
-                        # Avoid infinite loops if receipt requests receipt
                         if data.get("type") != "receipt":
                             self.send(data["from"], f"Receipt for {data['id']}", type="receipt", metadata={"ref_id": data["id"]})
                     except:
-                        pass # Don't fail read if receipt fails
+                        pass 
 
                 found_msgs.append(data)
             
@@ -204,9 +236,40 @@ class Comm:
         results.sort(key=lambda x: x["timestamp"])
         return results[:limit]
 
+    def cleanup_archive(self, max_age_days=30):
+        """Remove archived messages older than max_age_days."""
+        limit_seconds = max_age_days * 86400
+        now = time.time()
+        
+        dirs_to_clean = [
+            os.path.join(self.messages_dir, "public", "archive"),
+            os.path.join(self.mailbox, "archive")
+        ]
+        
+        count = 0
+        for d in dirs_to_clean:
+            if not os.path.exists(d):
+                continue
+            
+            try:
+                with os.scandir(d) as it:
+                    for entry in it:
+                        if not entry.is_file():
+                            continue
+                        try:
+                            stat = entry.stat()
+                            if now - stat.st_mtime > limit_seconds:
+                                os.remove(entry.path)
+                                count += 1
+                        except:
+                            pass
+            except OSError:
+                pass
+        return count
+
     def _move_to_dlq(self, filepath, reason="unknown"):
         """Move message to Dead Letter Queue."""
-        dirname = os.path.dirname(os.path.dirname(filepath)) # go up from archive/ to agent/
+        dirname = os.path.dirname(os.path.dirname(filepath)) # go up from archive/ to agent/ 
         dlq_dir = os.path.join(dirname, "dlq")
         os.makedirs(dlq_dir, exist_ok=True)
         
@@ -219,13 +282,10 @@ class Comm:
 
     def _load_processed_ids(self):
         """Load recent processed message IDs to enforce idempotency."""
-        # Simple implementation: Read a file. 
-        # In production, this should be a rolling log or database.
         path = os.path.join(self.mailbox, ".processed")
         if not os.path.exists(path):
             return set()
         try:
-            # Last 1000 IDs
             lines = io.read_text(path).splitlines()
             return set(lines[-1000:])
         except:
@@ -278,6 +338,7 @@ def main():
     send.add_argument("--from-id", help="Sender ID", default="cli-user")
     send.add_argument("--ttl", type=int, help="TTL in seconds")
     send.add_argument("--receipt", action="store_true", help="Request receipt")
+    send.add_argument("--compress", action="store_true", help="Compress message")
 
     # Read
     read = subparsers.add_parser("read", help="Read messages")
@@ -289,13 +350,17 @@ def main():
     # Register
     reg = subparsers.add_parser("register", help="Register as an agent")
     reg.add_argument("role", help="Role name")
+    
+    # Cleanup
+    clean = subparsers.add_parser("cleanup", help="Cleanup archive")
+    clean.add_argument("--days", type=int, default=30, help="Max age in days")
 
     args = parser.parse_args()
 
     if args.command == "send":
         comm = Comm(agent_id=args.from_id)
         comm.register()
-        comm.send(args.recipient, args.message, ttl=args.ttl, request_receipt=args.receipt)
+        comm.send(args.recipient, args.message, ttl=args.ttl, request_receipt=args.receipt, compress=args.compress)
         print("Message sent.")
 
     elif args.command == "read":
@@ -312,6 +377,11 @@ def main():
         comm = Comm(role=args.role)
         aid = comm.register()
         print(f"Registered as {aid}")
+        
+    elif args.command == "cleanup":
+        comm = Comm()
+        count = comm.cleanup_archive(max_age_days=args.days)
+        print(f"Cleaned {count} archived files.")
     
     else:
         parser.print_help()
