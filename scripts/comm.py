@@ -7,6 +7,8 @@ import uuid
 import argparse
 import datetime
 import heapq
+import hmac
+import hashlib
 
 # Setup paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -14,6 +16,17 @@ REPO_ROOT = os.getenv("TASKS_REPO_ROOT", os.path.dirname(SCRIPT_DIR))
 sys.path.append(REPO_ROOT)
 
 from scripts.lib import io, config, audit, concurrency
+
+class Security:
+    def __init__(self, secret=None):
+        self.secret = secret or os.getenv("AGENT_CLUSTER_SECRET", "default-insecure-secret")
+
+    def sign(self, payload_str):
+        return hmac.new(self.secret.encode(), payload_str.encode(), hashlib.sha256).hexdigest()
+
+    def verify(self, payload_str, signature):
+        expected = self.sign(payload_str)
+        return hmac.compare_digest(expected, signature)
 
 class Comm:
     def __init__(self, agent_id=None, role="unknown"):
@@ -28,6 +41,11 @@ class Comm:
         # Ensure mailbox exists
         self.mailbox = os.path.join(self.messages_dir, self.agent_id)
         os.makedirs(self.mailbox, exist_ok=True)
+        
+        # Security & Rate Limiting
+        self.security = Security()
+        self.rate_limit_window = [] # timestamps
+        self.rate_limit_max = 60 # msgs per minute
 
     def register(self):
         """Announce presence in the registry."""
@@ -68,8 +86,21 @@ class Comm:
         return agents
 
     @audit.audit_log("agent_send")
-    def send(self, recipient_id, content, type="text", metadata=None, ttl=None, request_receipt=False, retry_count=3, compress=False):
+    def send(self, recipient_id, content, type="text", metadata=None, ttl=None, request_receipt=False, retry_count=3, compress=False, encrypt=False):
         """Send a message to another agent."""
+        # Rate Limiting
+        now = time.time()
+        self.rate_limit_window = [t for t in self.rate_limit_window if now - t < 60]
+        if len(self.rate_limit_window) >= self.rate_limit_max:
+            raise Exception("Rate limit exceeded")
+        self.rate_limit_window.append(now)
+
+        # Validation
+        if not isinstance(content, str):
+            raise ValueError("Content must be a string")
+        if len(content) > 10 * 1024 * 1024: # 10MB limit
+            raise ValueError("Message too large")
+
         if recipient_id == "public":
             target_dir = os.path.join(self.messages_dir, "public")
         else:
@@ -87,6 +118,14 @@ class Comm:
             metadata["request_receipt"] = True
         if compress:
             metadata["compression"] = "gzip"
+        if encrypt:
+            metadata["encrypted"] = True
+            content = f"ENC:{content}" # Mock encryption
+
+        # Sign
+        # Signature covers content + timestamp + id
+        payload = f"{msg_id}{timestamp}{content}"
+        metadata["sig"] = self.security.sign(payload)
 
         message = {
             "id": msg_id,
@@ -158,7 +197,6 @@ class Comm:
 
                 with os.scandir(source_dir) as it:
                     # Get top files by name (timestamp)
-                    # We fetch 2x limit to account for skips
                     entries = heapq.nsmallest(limit * 2, (e for e in it if valid_file(e)), key=lambda e: e.name)
                     files = [e.name for e in entries]
             except OSError:
@@ -193,6 +231,18 @@ class Comm:
                 except Exception:
                     self._move_to_dlq(dest_path, "corrupt_json")
                     continue
+
+                # Validation & Security Check
+                if "sig" in data.get("metadata", {}):
+                    payload = f"{data['id']}{data['timestamp']}{data['content']}"
+                    if not self.security.verify(payload, data["metadata"]["sig"]):
+                        self._move_to_dlq(dest_path, "invalid_signature")
+                        continue
+                
+                # Decrypt
+                if data.get("metadata", {}).get("encrypted"):
+                    if data["content"].startswith("ENC:"):
+                        data["content"] = data["content"][4:] # Mock decrypt
 
                 # TTL Check
                 if "ttl" in data.get("metadata", {}):
@@ -339,6 +389,7 @@ def main():
     send.add_argument("--ttl", type=int, help="TTL in seconds")
     send.add_argument("--receipt", action="store_true", help="Request receipt")
     send.add_argument("--compress", action="store_true", help="Compress message")
+    send.add_argument("--encrypt", action="store_true", help="Encrypt message")
 
     # Read
     read = subparsers.add_parser("read", help="Read messages")
@@ -360,7 +411,7 @@ def main():
     if args.command == "send":
         comm = Comm(agent_id=args.from_id)
         comm.register()
-        comm.send(args.recipient, args.message, ttl=args.ttl, request_receipt=args.receipt, compress=args.compress)
+        comm.send(args.recipient, args.message, ttl=args.ttl, request_receipt=args.receipt, compress=args.compress, encrypt=args.encrypt)
         print("Message sent.")
 
     elif args.command == "read":
