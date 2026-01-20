@@ -333,6 +333,105 @@
         "type": "object",
         "properties": {}
       }
+    },
+    {
+      "name": "code_index_init",
+      "description": "Initialize the code index by selecting source roots.",
+      "risk_level": "L2",
+      "implementation": "python3 scripts/code_index.py init",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "code_index_refresh",
+      "description": "Re-index the codebase.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/code_index.py index",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "code_index_list",
+      "description": "List indexed files.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/code_index.py list --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        }
+      }
+    },
+    {
+      "name": "code_index_search",
+      "description": "Search for symbols in the code index (fuzzy match).",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/code_index.py search \"{query}\" --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The symbol name to search for."
+          },
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "code_index_lookup",
+      "description": "Lookup a specific symbol definition or symbols in a file.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/code_index.py lookup \"{target}\" --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Symbol name or file path."
+          },
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        },
+        "required": ["target"]
+      }
+    },
+    {
+      "name": "code_index_references",
+      "description": "Find text references to a symbol in the codebase.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/code_index.py references \"{symbol}\" --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Symbol name."
+          },
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        },
+        "required": ["symbol"]
+      }
     }
   ]
 }
