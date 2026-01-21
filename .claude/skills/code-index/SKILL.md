@@ -24,6 +24,10 @@ Command: `python3 scripts/code_index.py index`
 View the file structure and symbol counts.
 Command: `python3 scripts/code_index.py list [--format json]`
 
+### Statistics
+View codebase statistics (files, symbols, test coverage ratio).
+Command: `python3 scripts/code_index.py stats [--format json]`
+
 ### Search Symbols
 Fuzzy search for symbols (classes, functions, etc.).
 Command: `python3 scripts/code_index.py search <query> [--format json]`

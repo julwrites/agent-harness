@@ -26,6 +26,12 @@ python3 scripts/tasks.py list --sprint "Sprint 1"
 python3 scripts/tasks.py update TASK-ID --status in_progress
 ```
 
+### Validate Tasks
+Check for errors or inconsistencies in task files.
+```bash
+python3 scripts/tasks.py validate
+```
+
 ### Manage Dependencies
 ```bash
 python3 scripts/tasks.py link TASK-A TASK-B  # A depends on B

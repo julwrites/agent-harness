@@ -285,6 +285,41 @@ def cmd_list(output_format="text"):
         sym_count = len(idx["files"][f]["symbols"])
         print(f"{f} ({sym_count} symbols)")
 
+def cmd_stats(output_format="text"):
+    idx = load_index()
+    files = idx.get("files", {})
+    symbols = idx.get("symbols", {})
+
+    file_count = len(files)
+    symbol_count = len(symbols)
+
+    # Simple LoC estimation (requires reading files, maybe slow)
+    total_loc = 0
+    test_files = 0
+
+    for f in files:
+        if "test" in f:
+            test_files += 1
+
+        # We don't have LoC in index yet, so we just count files/symbols
+
+    stats = {
+        "files": file_count,
+        "symbols": symbol_count,
+        "test_files": test_files,
+        "test_ratio": f"{(test_files/file_count*100):.1f}%" if file_count > 0 else "0%"
+    }
+
+    if output_format == "json":
+        print(json.dumps(stats, indent=2))
+    else:
+        print("Codebase Statistics")
+        print("-------------------")
+        print(f"Files:       {file_count}")
+        print(f"Symbols:     {symbol_count}")
+        print(f"Test Files:  {test_files}")
+        print(f"Test Ratio:  {stats['test_ratio']}")
+
 def cmd_search(query, output_format="text"):
     results = search_symbols(query)
     if output_format == "json":
@@ -340,6 +375,7 @@ def main():
     subparsers.add_parser("init", parents=[parent_parser], help="Initialize and configure")
     subparsers.add_parser("index", parents=[parent_parser], help="Re-index code")
     subparsers.add_parser("list", parents=[parent_parser], help="List indexed files")
+    subparsers.add_parser("stats", parents=[parent_parser], help="Show codebase statistics")
 
     search_p = subparsers.add_parser("search", parents=[parent_parser], help="Fuzzy search for symbols")
     search_p.add_argument("query", help="Search query")
@@ -358,6 +394,8 @@ def main():
         cmd_index()
     elif args.command == "list":
         cmd_list(args.format)
+    elif args.command == "stats":
+        cmd_stats(args.format)
     elif args.command == "search":
         cmd_search(args.query, args.format)
     elif args.command == "lookup":

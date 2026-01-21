@@ -19,6 +19,7 @@ You are an expert Software Engineer working on this project. Your primary respon
     *   Record key architectural decisions in the task document.
     *   **Memory Update**: If you learn something valuable for the long term, use `scripts/memory.py create` to record it.
 5.  **Review & Verify**:
+    *   **Quality Check**: Run `python3 scripts/quality.py verify` to ensure tests and validation pass. **Do not request review if this fails.**
     *   Once implementation is complete, update status to `review_requested`: `python3 scripts/tasks.py update [TASK_ID] review_requested`.
     *   Ask a human or another agent to review the code.
     *   Once approved and tested, update status to `verified`.

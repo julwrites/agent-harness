@@ -138,6 +138,38 @@
       }
     },
     {
+      "name": "task_validate",
+      "description": "Validate all task files for integrity and correctness.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/tasks.py validate --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        }
+      }
+    },
+    {
+      "name": "code_index_stats",
+      "description": "Show codebase statistics.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/code_index.py stats --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        }
+      }
+    },
+    {
       "name": "task_context",
       "description": "Show tasks that are currently in progress.",
       "risk_level": "L0",
@@ -304,6 +336,78 @@
           "recipient",
           "message"
         ]
+      }
+    },
+    {
+      "name": "quality_verify",
+      "description": "Run full verification (tests and validation).",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/quality.py verify --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        }
+      }
+    },
+    {
+      "name": "quality_test",
+      "description": "Run unit tests.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/quality.py test {pattern} {verbose} --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Specific test pattern or file."
+          },
+          "verbose": {
+            "type": "boolean",
+            "description": "Verbose output.",
+            "default": false
+          },
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        }
+      }
+    },
+    {
+      "name": "quality_lint",
+      "description": "Run linters.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/quality.py lint {files}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "string",
+            "description": "Specific files to lint (space separated)."
+          }
+        }
+      }
+    },
+    {
+      "name": "quality_map",
+      "description": "Scaffold a test file for a source file.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/quality.py map {src_file}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "src_file": {
+            "type": "string",
+            "description": "Source file path."
+          }
+        },
+        "required": ["src_file"]
       }
     },
     {
