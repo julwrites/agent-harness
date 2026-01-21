@@ -23,6 +23,16 @@ function task_show() {
     python3 scripts/tasks.py show "$@"
 }
 
+function task_validate() {
+    # Risk Level: L0
+    python3 scripts/tasks.py validate "$@"
+}
+
+function code_index_stats() {
+    # Risk Level: L0
+    python3 scripts/code_index.py stats "$@"
+}
+
 function task_context() {
     # Risk Level: L0
     python3 scripts/tasks.py context "$@"
@@ -66,6 +76,26 @@ function index_check() {
 function agent_send() {
     # Risk Level: L1
     python3 scripts/comm.py send "$@"
+}
+
+function quality_verify() {
+    # Risk Level: L0
+    python3 scripts/quality.py verify "$@"
+}
+
+function quality_test() {
+    # Risk Level: L0
+    python3 scripts/quality.py test "$@"
+}
+
+function quality_lint() {
+    # Risk Level: L0
+    python3 scripts/quality.py lint "$@"
+}
+
+function quality_map() {
+    # Risk Level: L1
+    python3 scripts/quality.py map "$@"
 }
 
 function agent_read() {
