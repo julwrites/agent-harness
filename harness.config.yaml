@@ -34,3 +34,7 @@ tasks:
 agents:
   bus_dir: .agents
   audit_log: logs/audit.jsonl
+
+code_index:
+  source_roots:
+    - scripts

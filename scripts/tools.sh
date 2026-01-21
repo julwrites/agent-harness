@@ -77,3 +77,33 @@ function agent_list() {
     # Risk Level: L0
     python3 scripts/comm.py list "$@"
 }
+
+function code_index_init() {
+    # Risk Level: L2
+    python3 scripts/code_index.py init "$@"
+}
+
+function code_index_refresh() {
+    # Risk Level: L1
+    python3 scripts/code_index.py index "$@"
+}
+
+function code_index_list() {
+    # Risk Level: L0
+    python3 scripts/code_index.py list "$@"
+}
+
+function code_index_search() {
+    # Risk Level: L0
+    python3 scripts/code_index.py search "$@"
+}
+
+function code_index_lookup() {
+    # Risk Level: L0
+    python3 scripts/code_index.py lookup "$@"
+}
+
+function code_index_references() {
+    # Risk Level: L0
+    python3 scripts/code_index.py references "$@"
+}

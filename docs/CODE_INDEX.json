@@ -1,0 +1,2055 @@
+{
+  "files": {
+    "scripts/index.py": {
+      "path": "scripts/index.py",
+      "symbols": [
+        {
+          "name": "init_index",
+          "type": "function",
+          "line": 15
+        },
+        {
+          "name": "validate_path",
+          "type": "function",
+          "line": 24
+        },
+        {
+          "name": "add_entry",
+          "type": "function",
+          "line": 29
+        },
+        {
+          "name": "remove_entry",
+          "type": "function",
+          "line": 53
+        },
+        {
+          "name": "check_integrity",
+          "type": "function",
+          "line": 77
+        },
+        {
+          "name": "get_impact",
+          "type": "function",
+          "line": 104
+        },
+        {
+          "name": "visualize",
+          "type": "function",
+          "line": 162
+        },
+        {
+          "name": "list_entries",
+          "type": "function",
+          "line": 203
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 224
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 8
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 9
+        },
+        {
+          "name": "INDEX_FILE",
+          "type": "variable",
+          "line": 13
+        }
+      ]
+    },
+    "scripts/__init__.py": {
+      "path": "scripts/__init__.py",
+      "symbols": []
+    },
+    "scripts/upgrade.py": {
+      "path": "scripts/upgrade.py",
+      "symbols": [
+        {
+          "name": "upgrade",
+          "type": "function",
+          "line": 11
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 7
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 8
+        },
+        {
+          "name": "TASKS_SCRIPT",
+          "type": "variable",
+          "line": 9
+        }
+      ]
+    },
+    "scripts/tools.sh": {
+      "path": "scripts/tools.sh",
+      "symbols": []
+    },
+    "scripts/index": {
+      "path": "scripts/index",
+      "symbols": []
+    },
+    "scripts/memory.py": {
+      "path": "scripts/memory.py",
+      "symbols": [
+        {
+          "name": "init_memory",
+          "type": "function",
+          "line": 18
+        },
+        {
+          "name": "slugify",
+          "type": "function",
+          "line": 24
+        },
+        {
+          "name": "create_memory",
+          "type": "function",
+          "line": 29
+        },
+        {
+          "name": "list_memories",
+          "type": "function",
+          "line": 81
+        },
+        {
+          "name": "read_memory",
+          "type": "function",
+          "line": 154
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 199
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 10
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 12
+        },
+        {
+          "name": "MEMORY_DIR",
+          "type": "variable",
+          "line": 16
+        }
+      ]
+    },
+    "scripts/tasks": {
+      "path": "scripts/tasks",
+      "symbols": []
+    },
+    "scripts/continuity.py": {
+      "path": "scripts/continuity.py",
+      "symbols": [
+        {
+          "name": "ensure_dirs",
+          "type": "function",
+          "line": 21
+        },
+        {
+          "name": "slugify",
+          "type": "function",
+          "line": 25
+        },
+        {
+          "name": "get_latest_file",
+          "type": "function",
+          "line": 29
+        },
+        {
+          "name": "create_entry",
+          "type": "function",
+          "line": 39
+        },
+        {
+          "name": "read_file",
+          "type": "function",
+          "line": 60
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 66
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 15
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 16
+        },
+        {
+          "name": "CONTINUITY_DIR",
+          "type": "variable",
+          "line": 17
+        },
+        {
+          "name": "LEDGERS_DIR",
+          "type": "variable",
+          "line": 18
+        },
+        {
+          "name": "HANDOFFS_DIR",
+          "type": "variable",
+          "line": 19
+        }
+      ]
+    },
+    "scripts/comm.py": {
+      "path": "scripts/comm.py",
+      "symbols": [
+        {
+          "name": "Security",
+          "type": "class",
+          "line": 21
+        },
+        {
+          "name": "Security.__init__",
+          "type": "method",
+          "line": 22
+        },
+        {
+          "name": "Security.sign",
+          "type": "method",
+          "line": 25
+        },
+        {
+          "name": "Security.verify",
+          "type": "method",
+          "line": 28
+        },
+        {
+          "name": "Comm",
+          "type": "class",
+          "line": 32
+        },
+        {
+          "name": "Comm.__init__",
+          "type": "method",
+          "line": 33
+        },
+        {
+          "name": "Comm.register",
+          "type": "method",
+          "line": 51
+        },
+        {
+          "name": "Comm.list_agents",
+          "type": "method",
+          "line": 74
+        },
+        {
+          "name": "Comm.check_health",
+          "type": "method",
+          "line": 89
+        },
+        {
+          "name": "Comm.get_metrics",
+          "type": "method",
+          "line": 125
+        },
+        {
+          "name": "Comm.send",
+          "type": "method",
+          "line": 149
+        },
+        {
+          "name": "Comm.send_batch",
+          "type": "method",
+          "line": 219
+        },
+        {
+          "name": "Comm.read",
+          "type": "method",
+          "line": 240
+        },
+        {
+          "name": "Comm.cleanup_archive",
+          "type": "method",
+          "line": 356
+        },
+        {
+          "name": "Comm._move_to_dlq",
+          "type": "method",
+          "line": 387
+        },
+        {
+          "name": "Comm._load_processed_ids",
+          "type": "method",
+          "line": 400
+        },
+        {
+          "name": "Comm._save_processed_id",
+          "type": "method",
+          "line": 411
+        },
+        {
+          "name": "Comm.prune_registry",
+          "type": "method",
+          "line": 420
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 447
+        },
+        {
+          "name": "process_box",
+          "type": "function",
+          "line": 247
+        },
+        {
+          "name": "get_sort_key",
+          "type": "function",
+          "line": 346
+        },
+        {
+          "name": "valid_file",
+          "type": "function",
+          "line": 254
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 15
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 16
+        }
+      ]
+    },
+    "scripts/tasks.py": {
+      "path": "scripts/tasks.py",
+      "symbols": [
+        {
+          "name": "init_docs",
+          "type": "function",
+          "line": 34
+        },
+        {
+          "name": "generate_task_id",
+          "type": "function",
+          "line": 86
+        },
+        {
+          "name": "extract_frontmatter",
+          "type": "function",
+          "line": 92
+        },
+        {
+          "name": "parse_task_content",
+          "type": "function",
+          "line": 131
+        },
+        {
+          "name": "create_task",
+          "type": "function",
+          "line": 183
+        },
+        {
+          "name": "find_task_file",
+          "type": "function",
+          "line": 244
+        },
+        {
+          "name": "show_task",
+          "type": "function",
+          "line": 269
+        },
+        {
+          "name": "delete_task",
+          "type": "function",
+          "line": 295
+        },
+        {
+          "name": "archive_task",
+          "type": "function",
+          "line": 319
+        },
+        {
+          "name": "migrate_to_frontmatter",
+          "type": "function",
+          "line": 350
+        },
+        {
+          "name": "update_task_status",
+          "type": "function",
+          "line": 395
+        },
+        {
+          "name": "update_frontmatter_field",
+          "type": "function",
+          "line": 491
+        },
+        {
+          "name": "add_dependency",
+          "type": "function",
+          "line": 543
+        },
+        {
+          "name": "remove_dependency",
+          "type": "function",
+          "line": 572
+        },
+        {
+          "name": "generate_index",
+          "type": "function",
+          "line": 595
+        },
+        {
+          "name": "list_tasks",
+          "type": "function",
+          "line": 642
+        },
+        {
+          "name": "get_context",
+          "type": "function",
+          "line": 696
+        },
+        {
+          "name": "migrate_all",
+          "type": "function",
+          "line": 702
+        },
+        {
+          "name": "validate_all",
+          "type": "function",
+          "line": 729
+        },
+        {
+          "name": "visualize_tasks",
+          "type": "function",
+          "line": 832
+        },
+        {
+          "name": "get_next_task",
+          "type": "function",
+          "line": 889
+        },
+        {
+          "name": "install_hooks",
+          "type": "function",
+          "line": 985
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 1011
+        },
+        {
+          "name": "detect_cycle",
+          "type": "function",
+          "line": 788
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 14
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 15
+        },
+        {
+          "name": "config",
+          "type": "variable",
+          "line": 23
+        },
+        {
+          "name": "DOCS_DIR",
+          "type": "variable",
+          "line": 25
+        },
+        {
+          "name": "TEMPLATES_DIR",
+          "type": "variable",
+          "line": 26
+        },
+        {
+          "name": "CATEGORIES",
+          "type": "variable",
+          "line": 28
+        },
+        {
+          "name": "VALID_STATUSES",
+          "type": "variable",
+          "line": 29
+        },
+        {
+          "name": "VALID_TYPES",
+          "type": "variable",
+          "line": 30
+        },
+        {
+          "name": "ARCHIVE_DIR_NAME",
+          "type": "variable",
+          "line": 32
+        }
+      ]
+    },
+    "scripts/bootstrap.py": {
+      "path": "scripts/bootstrap.py",
+      "symbols": [
+        {
+          "name": "is_ignored_preamble_line",
+          "type": "function",
+          "line": 34
+        },
+        {
+          "name": "extract_custom_content",
+          "type": "function",
+          "line": 46
+        },
+        {
+          "name": "scaffold",
+          "type": "function",
+          "line": 84
+        },
+        {
+          "name": "check_state",
+          "type": "function",
+          "line": 146
+        },
+        {
+          "name": "finalize",
+          "type": "function",
+          "line": 182
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 7
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 8
+        },
+        {
+          "name": "AGENTS_FILE",
+          "type": "variable",
+          "line": 13
+        },
+        {
+          "name": "CLAUDE_FILE",
+          "type": "variable",
+          "line": 14
+        },
+        {
+          "name": "TEMPLATE_MAINTENANCE",
+          "type": "variable",
+          "line": 15
+        },
+        {
+          "name": "CONFIG_FILE",
+          "type": "variable",
+          "line": 16
+        },
+        {
+          "name": "STANDARD_HEADERS",
+          "type": "variable",
+          "line": 18
+        },
+        {
+          "name": "PREAMBLE_IGNORE_PATTERNS",
+          "type": "variable",
+          "line": 26
+        }
+      ]
+    },
+    "scripts/generate_tools.py": {
+      "path": "scripts/generate_tools.py",
+      "symbols": [
+        {
+          "name": "generate_markdown",
+          "type": "function",
+          "line": 17
+        },
+        {
+          "name": "generate_shell",
+          "type": "function",
+          "line": 41
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 83
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 7
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 8
+        },
+        {
+          "name": "TOOLS_JSON",
+          "type": "variable",
+          "line": 13
+        },
+        {
+          "name": "TOOLS_MD",
+          "type": "variable",
+          "line": 14
+        },
+        {
+          "name": "TOOLS_SH",
+          "type": "variable",
+          "line": 15
+        }
+      ]
+    },
+    "scripts/code_index.py": {
+      "path": "scripts/code_index.py",
+      "symbols": [
+        {
+          "name": "get_source_roots",
+          "type": "function",
+          "line": 21
+        },
+        {
+          "name": "save_config",
+          "type": "function",
+          "line": 38
+        },
+        {
+          "name": "parse_python_file",
+          "type": "function",
+          "line": 56
+        },
+        {
+          "name": "index_code",
+          "type": "function",
+          "line": 117
+        },
+        {
+          "name": "load_index",
+          "type": "function",
+          "line": 173
+        },
+        {
+          "name": "search_symbols",
+          "type": "function",
+          "line": 179
+        },
+        {
+          "name": "lookup_symbol",
+          "type": "function",
+          "line": 198
+        },
+        {
+          "name": "lookup_file",
+          "type": "function",
+          "line": 204
+        },
+        {
+          "name": "find_references",
+          "type": "function",
+          "line": 219
+        },
+        {
+          "name": "cmd_init",
+          "type": "function",
+          "line": 252
+        },
+        {
+          "name": "cmd_index",
+          "type": "function",
+          "line": 272
+        },
+        {
+          "name": "cmd_list",
+          "type": "function",
+          "line": 276
+        },
+        {
+          "name": "cmd_search",
+          "type": "function",
+          "line": 288
+        },
+        {
+          "name": "cmd_lookup",
+          "type": "function",
+          "line": 298
+        },
+        {
+          "name": "cmd_references",
+          "type": "function",
+          "line": 323
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 333
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 11
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 12
+        },
+        {
+          "name": "INDEX_FILE",
+          "type": "variable",
+          "line": 18
+        },
+        {
+          "name": "CONFIG_FILE",
+          "type": "variable",
+          "line": 19
+        }
+      ]
+    },
+    "scripts/hooks/session_start.py": {
+      "path": "scripts/hooks/session_start.py",
+      "symbols": [
+        {
+          "name": "get_latest_content",
+          "type": "function",
+          "line": 21
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line": 30
+        },
+        {
+          "name": "SCRIPT_DIR",
+          "type": "variable",
+          "line": 14
+        },
+        {
+          "name": "REPO_ROOT",
+          "type": "variable",
+          "line": 16
+        },
+        {
+          "name": "CONTINUITY_DIR",
+          "type": "variable",
+          "line": 17
+        },
+        {
+          "name": "LEDGERS_DIR",
+          "type": "variable",
+          "line": 18
+        },
+        {
+          "name": "HANDOFFS_DIR",
+          "type": "variable",
+          "line": 19
+        }
+      ]
+    },
+    "scripts/lib/__init__.py": {
+      "path": "scripts/lib/__init__.py",
+      "symbols": []
+    },
+    "scripts/lib/io.py": {
+      "path": "scripts/lib/io.py",
+      "symbols": [
+        {
+          "name": "write_atomic",
+          "type": "function",
+          "line": 7
+        },
+        {
+          "name": "write_atomic_gzip",
+          "type": "function",
+          "line": 36
+        },
+        {
+          "name": "read_text",
+          "type": "function",
+          "line": 60
+        },
+        {
+          "name": "write_json",
+          "type": "function",
+          "line": 83
+        },
+        {
+          "name": "read_json",
+          "type": "function",
+          "line": 91
+        }
+      ]
+    },
+    "scripts/lib/concurrency.py": {
+      "path": "scripts/lib/concurrency.py",
+      "symbols": [
+        {
+          "name": "FileLockException",
+          "type": "class",
+          "line": 7
+        },
+        {
+          "name": "FileLock",
+          "type": "class",
+          "line": 10
+        },
+        {
+          "name": "FileLock.__init__",
+          "type": "method",
+          "line": 14
+        },
+        {
+          "name": "FileLock.acquire",
+          "type": "method",
+          "line": 20
+        },
+        {
+          "name": "FileLock.release",
+          "type": "method",
+          "line": 41
+        },
+        {
+          "name": "FileLock.__enter__",
+          "type": "method",
+          "line": 50
+        },
+        {
+          "name": "FileLock.__exit__",
+          "type": "method",
+          "line": 54
+        }
+      ]
+    },
+    "scripts/lib/config.py": {
+      "path": "scripts/lib/config.py",
+      "symbols": [
+        {
+          "name": "Config",
+          "type": "class",
+          "line": 49
+        },
+        {
+          "name": "Config.load",
+          "type": "method",
+          "line": 53
+        },
+        {
+          "name": "Config._merge",
+          "type": "method",
+          "line": 77
+        },
+        {
+          "name": "get_config",
+          "type": "function",
+          "line": 86
+        },
+        {
+          "name": "DEFAULT_CONFIG",
+          "type": "variable",
+          "line": 6
+        }
+      ]
+    },
+    "scripts/lib/audit.py": {
+      "path": "scripts/lib/audit.py",
+      "symbols": [
+        {
+          "name": "log_activity",
+          "type": "function",
+          "line": 6
+        },
+        {
+          "name": "audit_log",
+          "type": "function",
+          "line": 47
+        },
+        {
+          "name": "serialize",
+          "type": "function",
+          "line": 32
+        },
+        {
+          "name": "decorator",
+          "type": "function",
+          "line": 51
+        },
+        {
+          "name": "wrapper",
+          "type": "function",
+          "line": 52
+        }
+      ]
+    },
+    "scripts/lib/yaml.py": {
+      "path": "scripts/lib/yaml.py",
+      "symbols": [
+        {
+          "name": "SimpleYaml",
+          "type": "class",
+          "line": 3
+        },
+        {
+          "name": "SimpleYaml.load",
+          "type": "method",
+          "line": 10
+        },
+        {
+          "name": "SimpleYaml._parse",
+          "type": "method",
+          "line": 20
+        },
+        {
+          "name": "SimpleYaml.save",
+          "type": "method",
+          "line": 77
+        },
+        {
+          "name": "clean",
+          "type": "function",
+          "line": 25
+        }
+      ]
+    }
+  },
+  "symbols": {
+    "init_index": [
+      {
+        "file": "scripts/index.py",
+        "line": 15,
+        "type": "function"
+      }
+    ],
+    "validate_path": [
+      {
+        "file": "scripts/index.py",
+        "line": 24,
+        "type": "function"
+      }
+    ],
+    "add_entry": [
+      {
+        "file": "scripts/index.py",
+        "line": 29,
+        "type": "function"
+      }
+    ],
+    "remove_entry": [
+      {
+        "file": "scripts/index.py",
+        "line": 53,
+        "type": "function"
+      }
+    ],
+    "check_integrity": [
+      {
+        "file": "scripts/index.py",
+        "line": 77,
+        "type": "function"
+      }
+    ],
+    "get_impact": [
+      {
+        "file": "scripts/index.py",
+        "line": 104,
+        "type": "function"
+      }
+    ],
+    "visualize": [
+      {
+        "file": "scripts/index.py",
+        "line": 162,
+        "type": "function"
+      }
+    ],
+    "list_entries": [
+      {
+        "file": "scripts/index.py",
+        "line": 203,
+        "type": "function"
+      }
+    ],
+    "main": [
+      {
+        "file": "scripts/index.py",
+        "line": 224,
+        "type": "function"
+      },
+      {
+        "file": "scripts/memory.py",
+        "line": 199,
+        "type": "function"
+      },
+      {
+        "file": "scripts/continuity.py",
+        "line": 66,
+        "type": "function"
+      },
+      {
+        "file": "scripts/comm.py",
+        "line": 447,
+        "type": "function"
+      },
+      {
+        "file": "scripts/tasks.py",
+        "line": 1011,
+        "type": "function"
+      },
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 83,
+        "type": "function"
+      },
+      {
+        "file": "scripts/code_index.py",
+        "line": 333,
+        "type": "function"
+      },
+      {
+        "file": "scripts/hooks/session_start.py",
+        "line": 30,
+        "type": "function"
+      }
+    ],
+    "SCRIPT_DIR": [
+      {
+        "file": "scripts/index.py",
+        "line": 8,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/upgrade.py",
+        "line": 7,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/memory.py",
+        "line": 10,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/continuity.py",
+        "line": 15,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/comm.py",
+        "line": 15,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/tasks.py",
+        "line": 14,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 7,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 7,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/code_index.py",
+        "line": 11,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/hooks/session_start.py",
+        "line": 14,
+        "type": "variable"
+      }
+    ],
+    "REPO_ROOT": [
+      {
+        "file": "scripts/index.py",
+        "line": 9,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/upgrade.py",
+        "line": 8,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/memory.py",
+        "line": 12,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/continuity.py",
+        "line": 16,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/comm.py",
+        "line": 16,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/tasks.py",
+        "line": 15,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 8,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 8,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/code_index.py",
+        "line": 12,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/hooks/session_start.py",
+        "line": 16,
+        "type": "variable"
+      }
+    ],
+    "INDEX_FILE": [
+      {
+        "file": "scripts/index.py",
+        "line": 13,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/code_index.py",
+        "line": 18,
+        "type": "variable"
+      }
+    ],
+    "upgrade": [
+      {
+        "file": "scripts/upgrade.py",
+        "line": 11,
+        "type": "function"
+      }
+    ],
+    "TASKS_SCRIPT": [
+      {
+        "file": "scripts/upgrade.py",
+        "line": 9,
+        "type": "variable"
+      }
+    ],
+    "init_memory": [
+      {
+        "file": "scripts/memory.py",
+        "line": 18,
+        "type": "function"
+      }
+    ],
+    "slugify": [
+      {
+        "file": "scripts/memory.py",
+        "line": 24,
+        "type": "function"
+      },
+      {
+        "file": "scripts/continuity.py",
+        "line": 25,
+        "type": "function"
+      }
+    ],
+    "create_memory": [
+      {
+        "file": "scripts/memory.py",
+        "line": 29,
+        "type": "function"
+      }
+    ],
+    "list_memories": [
+      {
+        "file": "scripts/memory.py",
+        "line": 81,
+        "type": "function"
+      }
+    ],
+    "read_memory": [
+      {
+        "file": "scripts/memory.py",
+        "line": 154,
+        "type": "function"
+      }
+    ],
+    "MEMORY_DIR": [
+      {
+        "file": "scripts/memory.py",
+        "line": 16,
+        "type": "variable"
+      }
+    ],
+    "ensure_dirs": [
+      {
+        "file": "scripts/continuity.py",
+        "line": 21,
+        "type": "function"
+      }
+    ],
+    "get_latest_file": [
+      {
+        "file": "scripts/continuity.py",
+        "line": 29,
+        "type": "function"
+      }
+    ],
+    "create_entry": [
+      {
+        "file": "scripts/continuity.py",
+        "line": 39,
+        "type": "function"
+      }
+    ],
+    "read_file": [
+      {
+        "file": "scripts/continuity.py",
+        "line": 60,
+        "type": "function"
+      }
+    ],
+    "CONTINUITY_DIR": [
+      {
+        "file": "scripts/continuity.py",
+        "line": 17,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/hooks/session_start.py",
+        "line": 17,
+        "type": "variable"
+      }
+    ],
+    "LEDGERS_DIR": [
+      {
+        "file": "scripts/continuity.py",
+        "line": 18,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/hooks/session_start.py",
+        "line": 18,
+        "type": "variable"
+      }
+    ],
+    "HANDOFFS_DIR": [
+      {
+        "file": "scripts/continuity.py",
+        "line": 19,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/hooks/session_start.py",
+        "line": 19,
+        "type": "variable"
+      }
+    ],
+    "Security": [
+      {
+        "file": "scripts/comm.py",
+        "line": 21,
+        "type": "class"
+      }
+    ],
+    "Security.__init__": [
+      {
+        "file": "scripts/comm.py",
+        "line": 22,
+        "type": "method"
+      }
+    ],
+    "Security.sign": [
+      {
+        "file": "scripts/comm.py",
+        "line": 25,
+        "type": "method"
+      }
+    ],
+    "Security.verify": [
+      {
+        "file": "scripts/comm.py",
+        "line": 28,
+        "type": "method"
+      }
+    ],
+    "Comm": [
+      {
+        "file": "scripts/comm.py",
+        "line": 32,
+        "type": "class"
+      }
+    ],
+    "Comm.__init__": [
+      {
+        "file": "scripts/comm.py",
+        "line": 33,
+        "type": "method"
+      }
+    ],
+    "Comm.register": [
+      {
+        "file": "scripts/comm.py",
+        "line": 51,
+        "type": "method"
+      }
+    ],
+    "Comm.list_agents": [
+      {
+        "file": "scripts/comm.py",
+        "line": 74,
+        "type": "method"
+      }
+    ],
+    "Comm.check_health": [
+      {
+        "file": "scripts/comm.py",
+        "line": 89,
+        "type": "method"
+      }
+    ],
+    "Comm.get_metrics": [
+      {
+        "file": "scripts/comm.py",
+        "line": 125,
+        "type": "method"
+      }
+    ],
+    "Comm.send": [
+      {
+        "file": "scripts/comm.py",
+        "line": 149,
+        "type": "method"
+      }
+    ],
+    "Comm.send_batch": [
+      {
+        "file": "scripts/comm.py",
+        "line": 219,
+        "type": "method"
+      }
+    ],
+    "Comm.read": [
+      {
+        "file": "scripts/comm.py",
+        "line": 240,
+        "type": "method"
+      }
+    ],
+    "Comm.cleanup_archive": [
+      {
+        "file": "scripts/comm.py",
+        "line": 356,
+        "type": "method"
+      }
+    ],
+    "Comm._move_to_dlq": [
+      {
+        "file": "scripts/comm.py",
+        "line": 387,
+        "type": "method"
+      }
+    ],
+    "Comm._load_processed_ids": [
+      {
+        "file": "scripts/comm.py",
+        "line": 400,
+        "type": "method"
+      }
+    ],
+    "Comm._save_processed_id": [
+      {
+        "file": "scripts/comm.py",
+        "line": 411,
+        "type": "method"
+      }
+    ],
+    "Comm.prune_registry": [
+      {
+        "file": "scripts/comm.py",
+        "line": 420,
+        "type": "method"
+      }
+    ],
+    "process_box": [
+      {
+        "file": "scripts/comm.py",
+        "line": 247,
+        "type": "function"
+      }
+    ],
+    "get_sort_key": [
+      {
+        "file": "scripts/comm.py",
+        "line": 346,
+        "type": "function"
+      }
+    ],
+    "valid_file": [
+      {
+        "file": "scripts/comm.py",
+        "line": 254,
+        "type": "function"
+      }
+    ],
+    "init_docs": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 34,
+        "type": "function"
+      }
+    ],
+    "generate_task_id": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 86,
+        "type": "function"
+      }
+    ],
+    "extract_frontmatter": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 92,
+        "type": "function"
+      }
+    ],
+    "parse_task_content": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 131,
+        "type": "function"
+      }
+    ],
+    "create_task": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 183,
+        "type": "function"
+      }
+    ],
+    "find_task_file": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 244,
+        "type": "function"
+      }
+    ],
+    "show_task": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 269,
+        "type": "function"
+      }
+    ],
+    "delete_task": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 295,
+        "type": "function"
+      }
+    ],
+    "archive_task": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 319,
+        "type": "function"
+      }
+    ],
+    "migrate_to_frontmatter": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 350,
+        "type": "function"
+      }
+    ],
+    "update_task_status": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 395,
+        "type": "function"
+      }
+    ],
+    "update_frontmatter_field": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 491,
+        "type": "function"
+      }
+    ],
+    "add_dependency": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 543,
+        "type": "function"
+      }
+    ],
+    "remove_dependency": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 572,
+        "type": "function"
+      }
+    ],
+    "generate_index": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 595,
+        "type": "function"
+      }
+    ],
+    "list_tasks": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 642,
+        "type": "function"
+      }
+    ],
+    "get_context": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 696,
+        "type": "function"
+      }
+    ],
+    "migrate_all": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 702,
+        "type": "function"
+      }
+    ],
+    "validate_all": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 729,
+        "type": "function"
+      }
+    ],
+    "visualize_tasks": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 832,
+        "type": "function"
+      }
+    ],
+    "get_next_task": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 889,
+        "type": "function"
+      }
+    ],
+    "install_hooks": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 985,
+        "type": "function"
+      }
+    ],
+    "detect_cycle": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 788,
+        "type": "function"
+      }
+    ],
+    "config": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 23,
+        "type": "variable"
+      }
+    ],
+    "DOCS_DIR": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 25,
+        "type": "variable"
+      }
+    ],
+    "TEMPLATES_DIR": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 26,
+        "type": "variable"
+      }
+    ],
+    "CATEGORIES": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 28,
+        "type": "variable"
+      }
+    ],
+    "VALID_STATUSES": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 29,
+        "type": "variable"
+      }
+    ],
+    "VALID_TYPES": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 30,
+        "type": "variable"
+      }
+    ],
+    "ARCHIVE_DIR_NAME": [
+      {
+        "file": "scripts/tasks.py",
+        "line": 32,
+        "type": "variable"
+      }
+    ],
+    "is_ignored_preamble_line": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 34,
+        "type": "function"
+      }
+    ],
+    "extract_custom_content": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 46,
+        "type": "function"
+      }
+    ],
+    "scaffold": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 84,
+        "type": "function"
+      }
+    ],
+    "check_state": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 146,
+        "type": "function"
+      }
+    ],
+    "finalize": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 182,
+        "type": "function"
+      }
+    ],
+    "AGENTS_FILE": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 13,
+        "type": "variable"
+      }
+    ],
+    "CLAUDE_FILE": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 14,
+        "type": "variable"
+      }
+    ],
+    "TEMPLATE_MAINTENANCE": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 15,
+        "type": "variable"
+      }
+    ],
+    "CONFIG_FILE": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 16,
+        "type": "variable"
+      },
+      {
+        "file": "scripts/code_index.py",
+        "line": 19,
+        "type": "variable"
+      }
+    ],
+    "STANDARD_HEADERS": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 18,
+        "type": "variable"
+      }
+    ],
+    "PREAMBLE_IGNORE_PATTERNS": [
+      {
+        "file": "scripts/bootstrap.py",
+        "line": 26,
+        "type": "variable"
+      }
+    ],
+    "generate_markdown": [
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 17,
+        "type": "function"
+      }
+    ],
+    "generate_shell": [
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 41,
+        "type": "function"
+      }
+    ],
+    "TOOLS_JSON": [
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 13,
+        "type": "variable"
+      }
+    ],
+    "TOOLS_MD": [
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 14,
+        "type": "variable"
+      }
+    ],
+    "TOOLS_SH": [
+      {
+        "file": "scripts/generate_tools.py",
+        "line": 15,
+        "type": "variable"
+      }
+    ],
+    "get_source_roots": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 21,
+        "type": "function"
+      }
+    ],
+    "save_config": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 38,
+        "type": "function"
+      }
+    ],
+    "parse_python_file": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 56,
+        "type": "function"
+      }
+    ],
+    "index_code": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 117,
+        "type": "function"
+      }
+    ],
+    "load_index": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 173,
+        "type": "function"
+      }
+    ],
+    "search_symbols": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 179,
+        "type": "function"
+      }
+    ],
+    "lookup_symbol": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 198,
+        "type": "function"
+      }
+    ],
+    "lookup_file": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 204,
+        "type": "function"
+      }
+    ],
+    "find_references": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 219,
+        "type": "function"
+      }
+    ],
+    "cmd_init": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 252,
+        "type": "function"
+      }
+    ],
+    "cmd_index": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 272,
+        "type": "function"
+      }
+    ],
+    "cmd_list": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 276,
+        "type": "function"
+      }
+    ],
+    "cmd_search": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 288,
+        "type": "function"
+      }
+    ],
+    "cmd_lookup": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 298,
+        "type": "function"
+      }
+    ],
+    "cmd_references": [
+      {
+        "file": "scripts/code_index.py",
+        "line": 323,
+        "type": "function"
+      }
+    ],
+    "get_latest_content": [
+      {
+        "file": "scripts/hooks/session_start.py",
+        "line": 21,
+        "type": "function"
+      }
+    ],
+    "write_atomic": [
+      {
+        "file": "scripts/lib/io.py",
+        "line": 7,
+        "type": "function"
+      }
+    ],
+    "write_atomic_gzip": [
+      {
+        "file": "scripts/lib/io.py",
+        "line": 36,
+        "type": "function"
+      }
+    ],
+    "read_text": [
+      {
+        "file": "scripts/lib/io.py",
+        "line": 60,
+        "type": "function"
+      }
+    ],
+    "write_json": [
+      {
+        "file": "scripts/lib/io.py",
+        "line": 83,
+        "type": "function"
+      }
+    ],
+    "read_json": [
+      {
+        "file": "scripts/lib/io.py",
+        "line": 91,
+        "type": "function"
+      }
+    ],
+    "FileLockException": [
+      {
+        "file": "scripts/lib/concurrency.py",
+        "line": 7,
+        "type": "class"
+      }
+    ],
+    "FileLock": [
+      {
+        "file": "scripts/lib/concurrency.py",
+        "line": 10,
+        "type": "class"
+      }
+    ],
+    "FileLock.__init__": [
+      {
+        "file": "scripts/lib/concurrency.py",
+        "line": 14,
+        "type": "method"
+      }
+    ],
+    "FileLock.acquire": [
+      {
+        "file": "scripts/lib/concurrency.py",
+        "line": 20,
+        "type": "method"
+      }
+    ],
+    "FileLock.release": [
+      {
+        "file": "scripts/lib/concurrency.py",
+        "line": 41,
+        "type": "method"
+      }
+    ],
+    "FileLock.__enter__": [
+      {
+        "file": "scripts/lib/concurrency.py",
+        "line": 50,
+        "type": "method"
+      }
+    ],
+    "FileLock.__exit__": [
+      {
+        "file": "scripts/lib/concurrency.py",
+        "line": 54,
+        "type": "method"
+      }
+    ],
+    "Config": [
+      {
+        "file": "scripts/lib/config.py",
+        "line": 49,
+        "type": "class"
+      }
+    ],
+    "Config.load": [
+      {
+        "file": "scripts/lib/config.py",
+        "line": 53,
+        "type": "method"
+      }
+    ],
+    "Config._merge": [
+      {
+        "file": "scripts/lib/config.py",
+        "line": 77,
+        "type": "method"
+      }
+    ],
+    "get_config": [
+      {
+        "file": "scripts/lib/config.py",
+        "line": 86,
+        "type": "function"
+      }
+    ],
+    "DEFAULT_CONFIG": [
+      {
+        "file": "scripts/lib/config.py",
+        "line": 6,
+        "type": "variable"
+      }
+    ],
+    "log_activity": [
+      {
+        "file": "scripts/lib/audit.py",
+        "line": 6,
+        "type": "function"
+      }
+    ],
+    "audit_log": [
+      {
+        "file": "scripts/lib/audit.py",
+        "line": 47,
+        "type": "function"
+      }
+    ],
+    "serialize": [
+      {
+        "file": "scripts/lib/audit.py",
+        "line": 32,
+        "type": "function"
+      }
+    ],
+    "decorator": [
+      {
+        "file": "scripts/lib/audit.py",
+        "line": 51,
+        "type": "function"
+      }
+    ],
+    "wrapper": [
+      {
+        "file": "scripts/lib/audit.py",
+        "line": 52,
+        "type": "function"
+      }
+    ],
+    "SimpleYaml": [
+      {
+        "file": "scripts/lib/yaml.py",
+        "line": 3,
+        "type": "class"
+      }
+    ],
+    "SimpleYaml.load": [
+      {
+        "file": "scripts/lib/yaml.py",
+        "line": 10,
+        "type": "method"
+      }
+    ],
+    "SimpleYaml._parse": [
+      {
+        "file": "scripts/lib/yaml.py",
+        "line": 20,
+        "type": "method"
+      }
+    ],
+    "SimpleYaml.save": [
+      {
+        "file": "scripts/lib/yaml.py",
+        "line": 77,
+        "type": "method"
+      }
+    ],
+    "clean": [
+      {
+        "file": "scripts/lib/yaml.py",
+        "line": 25,
+        "type": "function"
+      }
+    ]
+  }
+}
