@@ -134,13 +134,16 @@ def parse_task_content(content, filepath=None):
     # Try Frontmatter first
     frontmatter, body = extract_frontmatter(content)
     if frontmatter:
-        deps_val = frontmatter.get("dependencies") or ""
-        deps = []
-        if deps_val:
-            # Handle both string list "[a, b]" and plain string "a, b"
-            cleaned = deps_val.strip(" []")
-            if cleaned:
-                deps = [d.strip() for d in cleaned.split(",") if d.strip()]
+        def parse_list(val):
+            if not val: return []
+            val = val.strip(" []")
+            if not val: return []
+            return [d.strip() for d in val.split(",") if d.strip()]
+
+        deps = parse_list(frontmatter.get("dependencies") or frontmatter.get("depends_on"))
+        part_of = parse_list(frontmatter.get("part_of"))
+        related_to = parse_list(frontmatter.get("related_to"))
+
 
         return {
             "id": frontmatter.get("id", "unknown"),
@@ -151,6 +154,9 @@ def parse_task_content(content, filepath=None):
             "sprint": frontmatter.get("sprint", ""),
             "estimate": frontmatter.get("estimate", ""),
             "dependencies": deps,
+            "depends_on": deps,
+            "part_of": part_of,
+            "related_to": related_to,
             "filepath": filepath,
             "content": content
         }
@@ -175,12 +181,15 @@ def parse_task_content(content, filepath=None):
         "sprint": "",
         "estimate": "",
         "dependencies": [],
+        "depends_on": [],
+        "part_of": [],
+        "related_to": [],
         "filepath": filepath,
         "content": content
     }
 
 @audit.audit_log("task_create")
-def create_task(category, title, description, priority="medium", status="pending", dependencies=None, task_type="task", sprint="", estimate="", output_format="text"):
+def create_task(category, title, description, priority="medium", status="pending", dependencies=None, part_of=None, related_to=None, task_type="task", sprint="", estimate="", output_format="text"):
     if category not in CATEGORIES:
         msg = f"Error: Category '{category}' not found. Available: {', '.join(CATEGORIES)}"
         if output_format == "json":
@@ -210,6 +219,14 @@ def create_task(category, title, description, priority="medium", status="pending
         extra_fm += f"sprint: {sprint}\n"
     if estimate:
         extra_fm += f"estimate: {estimate}\n"
+    if part_of:
+        # Flow style list
+        val = "[" + ", ".join(part_of) + "]"
+        extra_fm += f"part_of: {val}\n"
+    if related_to:
+        val = "[" + ", ".join(related_to) + "]"
+        extra_fm += f"related_to: {val}\n"
+
 
     content = f"""---
 id: {task_id}
@@ -217,7 +234,6 @@ status: {status}
 title: {title}
 priority: {priority}
 created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-category: {category}
 dependencies: {deps_str}
 {extra_fm}---
 
@@ -639,6 +655,9 @@ def generate_index(output_format="text"):
     msg = f"Generated index at {index_path}"
     print(json.dumps({"success": True, "path": index_path}) if output_format == "json" else msg)
 
+
+
+
 def list_tasks(status=None, category=None, sprint=None, include_archived=False, output_format="text"):
     tasks = []
 
@@ -857,34 +876,42 @@ def visualize_tasks(output_format="text"):
 
     # Mermaid Output
     print("graph TD")
-
-    status_colors = {
-        "completed": "#90EE90",
-        "verified": "#90EE90",
-        "in_progress": "#ADD8E6",
-        "review_requested": "#FFFACD",
-        "wip_blocked": "#FFB6C1",
-        "blocked": "#FF7F7F",
-        "pending": "#D3D3D3",
-        "deferred": "#A9A9A9",
-        "cancelled": "#696969"
-    }
+    print("  %% Styles")
+    print("  classDef completed fill:#d4f1f4,stroke:#005f6b,color:#000;")
+    print("  classDef inprogress fill:#fff8c5,stroke:#b29400,color:#000;")
+    print("  classDef blocked fill:#ffdce0,stroke:#bc0004,color:#000;")
+    print("  classDef default fill:#fff,stroke:#333,color:#000;")
+    print("")
 
     # Nodes
     for t in tasks:
         # Sanitize title for label
         safe_title = t["title"].replace('"', '').replace('[', '').replace(']', '')
-        print(f'    {t["id"]}["{t["id"]}: {safe_title}"]')
-
-        # Style
-        color = status_colors.get(t["status"], "#FFFFFF")
-        print(f"    style {t['id']} fill:{color},stroke:#333,stroke-width:2px")
+        
+        # Style based on status
+        style_class = ""
+        if t['status'] in ['completed', 'verified']:
+            style_class = ":::completed"
+        elif t['status'] == 'in_progress':
+            style_class = ":::inprogress"
+        elif t['status'] in ['blocked', 'wip_blocked']:
+            style_class = ":::blocked"
+        
+        print(f'    {t["id"]}["{t["id"]}: {safe_title}"]{style_class}')
 
     # Edges
     for t in tasks:
-        deps = t.get("dependencies", [])
+        # Dependencies (Solid)
+        deps = t.get("depends_on") or t.get("dependencies") or []
         for dep in deps:
             print(f"    {dep} --> {t['id']}")
+            
+        # Parent (Dotted)
+        parents = t.get("part_of", [])
+        if isinstance(parents, str): parents = [parents]
+        for p in parents:
+             print(f"    {t['id']} -.-> {p}")
+
 
 def get_next_task(output_format="text"):
     """Identifies the next best task to work on."""
@@ -1027,10 +1054,13 @@ def main():
     create_parser.add_argument("--desc", default="To be determined", help="Task description")
     create_parser.add_argument("--priority", default="medium", help="Task priority")
     create_parser.add_argument("--status", choices=VALID_STATUSES, default="pending", help="Task status")
-    create_parser.add_argument("--dependencies", help="Comma-separated list of task IDs this task depends on")
+    create_parser.add_argument("--dependencies", "--depends-on", dest="dependencies", help="Comma-separated list of dependencies")
+    create_parser.add_argument("--part-of", help="Parent task ID(s)")
+    create_parser.add_argument("--related-to", help="Related task ID(s)")
     create_parser.add_argument("--type", choices=VALID_TYPES, default="task", help="Task type")
     create_parser.add_argument("--sprint", default="", help="Sprint name/ID")
     create_parser.add_argument("--estimate", default="", help="Estimate (points/size)")
+
 
     # List
     list_parser = subparsers.add_parser("list", parents=[parent_parser], help="List tasks")
@@ -1094,16 +1124,21 @@ def main():
     unlink_parser.add_argument("task_id", help="Task ID")
     unlink_parser.add_argument("dep_id", help="Dependency Task ID")
 
+    
     args = parser.parse_args()
 
     # Default format to text if not present (e.g. init doesn't have it)
     fmt = getattr(args, "format", "text")
 
     if args.command == "create":
-        deps = []
-        if args.dependencies:
-            deps = [d.strip() for d in args.dependencies.split(",") if d.strip()]
-        create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, dependencies=deps, task_type=args.type, sprint=args.sprint, estimate=args.estimate, output_format=fmt)
+        deps = [d.strip() for d in args.dependencies.split(",")] if args.dependencies else []
+        part_of = [d.strip() for d in args.part_of.split(",")] if args.part_of else []
+        related = [d.strip() for d in args.related_to.split(",")] if args.related_to else []
+        
+        create_task(args.category, args.title, args.desc, priority=args.priority, status=args.status, 
+                   dependencies=deps, part_of=part_of, related_to=related,
+                   task_type=args.type, sprint=args.sprint, estimate=args.estimate, output_format=fmt)
+
     elif args.command == "list":
         list_tasks(args.status, args.category, sprint=args.sprint, include_archived=args.archived, output_format=fmt)
     elif args.command == "init":
