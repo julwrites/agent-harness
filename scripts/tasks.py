@@ -363,6 +363,68 @@ def archive_task(task_id, output_format="text"):
             print(msg)
         sys.exit(1)
 
+def compact_task(task_id, summary, output_format="text"):
+    """
+    Archives a task content and replaces it with a summary stub.
+    """
+    filepath = find_task_file(task_id)
+    if not filepath:
+        msg = f"Error: Task ID {task_id} not found."
+        print(json.dumps({"error": msg}) if output_format == "json" else msg)
+        sys.exit(1)
+
+    try:
+        content = io.read_text(filepath)
+        task_data = parse_task_content(content, filepath)
+        
+        # 1. Archive
+        archive_dir = os.path.join(DOCS_DIR, ARCHIVE_DIR_NAME)
+        os.makedirs(archive_dir, exist_ok=True)
+        filename = os.path.basename(filepath)
+        archive_path = os.path.join(archive_dir, filename)
+        
+        # If archive exists, append timestamp to filename
+        if os.path.exists(archive_path):
+            ts = datetime.now().strftime("%Y%m%d%H%M%S")
+            archive_path = os.path.join(archive_dir, f"{ts}_{filename}")
+            
+        io.write_atomic(archive_path, content)
+        
+        # 2. Create Stub
+        # Extract Frontmatter 
+        fm_data, _ = extract_frontmatter(content)
+        
+        # Reconstruct FM (simpler than migration func)
+        lines = ["---"]
+        for k, v in fm_data.items():
+            lines.append(f"{k}: {v}")
+        lines.append("compacted: true")
+        lines.append("---")
+        lines.append("")
+        lines.append(f"# {task_data['title']}")
+        lines.append("")
+        lines.append(f"> **Compacted Task**")
+        lines.append(f"> Original archived at: `{os.path.relpath(archive_path, REPO_ROOT)}`")
+        lines.append("")
+        lines.append("## Summary")
+        lines.append(summary)
+        lines.append("")
+        
+        stub_content = "\n".join(lines)
+        io.write_atomic(filepath, stub_content)
+        
+        msg = f"Compacted {task_id}. Archive: {os.path.relpath(archive_path, REPO_ROOT)}"
+        if output_format == "json":
+            print(json.dumps({"success": True, "id": task_id, "archive_path": archive_path}))
+        else:
+            print(msg)
+
+    except Exception as e:
+        msg = f"Error compacting task: {e}"
+        print(json.dumps({"error": msg}) if output_format == "json" else msg)
+        sys.exit(1)
+
+
 def migrate_to_frontmatter(content, task_data):
     """Converts legacy content to Frontmatter format."""
     # Strip the header section from legacy content
@@ -752,6 +814,10 @@ def validate_all(output_format="text"):
 
     # Pass 1: Parse and Basic Validation
     for root, dirs, files in os.walk(DOCS_DIR):
+        # Skip archive
+        if ARCHIVE_DIR_NAME in root:
+            continue
+            
         for file in files:
             if not file.endswith(".md") or file in ["GUIDE.md", "README.md", "INDEX.yaml"]:
                 continue
@@ -1005,9 +1071,81 @@ def get_next_task(output_format="text"):
         print(f"Status:   {best['status']}")
         print(f"Priority: {best['priority']}")
         print(f"Type:     {best.get('type', 'task')}")
+    if output_format == "json":
+        print(json.dumps(best))
+    else:
+        print(f"Recommended Next Task (Score: {candidates[0][0]}):")
+        print(f"ID:       {best['id']}")
+        print(f"Title:    {best['title']}")
+        print(f"Status:   {best['status']}")
+        print(f"Priority: {best['priority']}")
+        print(f"Type:     {best.get('type', 'task')}")
         if best.get("sprint"):
              print(f"Sprint:   {best.get('sprint')}")
         print(f"\nRun: scripts/tasks show {best['id']}")
+
+def list_ready_tasks(output_format="text"):
+    """Lists only tasks that are strictly unblocked and ready."""
+    # 1. Collect all tasks
+    all_tasks = {}
+    for root, _, files in os.walk(DOCS_DIR):
+        for file in files:
+            if not file.endswith(".md") or file in ["GUIDE.md", "README.md", "INDEX.yaml"]:
+                continue
+            path = os.path.join(root, file)
+            try:
+                content = io.read_text(path)
+                task = parse_task_content(content, path)
+                if task["id"] != "unknown":
+                    all_tasks[task["id"]] = task
+            except:
+                pass
+
+    ready_tasks = []
+
+    for tid, task in all_tasks.items():
+        # Filter non-actionable statuses
+        if task["status"] in ["completed", "verified", "cancelled", "deferred", "blocked"]:
+            continue
+
+        # Check dependencies
+        deps = task.get("dependencies", [])
+        blocked = False
+        missing_dep = False
+        
+        for dep_id in deps:
+            if dep_id not in all_tasks:
+                missing_dep = True
+                blocked = True
+                break
+            
+            dep_status = all_tasks[dep_id]["status"]
+            if dep_status not in ["completed", "verified"]:
+                blocked = True
+                break
+        
+        if blocked:
+            continue
+            
+        ready_tasks.append(task)
+    
+    # Sort by Priority
+    prio_score = {"high": 3, "medium": 2, "low": 1, "unknown": 1}
+    ready_tasks.sort(key=lambda x: prio_score.get(x.get("priority", "medium"), 1), reverse=True)
+
+    if output_format == "json":
+        print(json.dumps([{k:v for k,v in t.items() if k!='content'} for t in ready_tasks]))
+    else:
+        if not ready_tasks:
+            print("No ready tasks found.")
+            return
+            
+        print(f"{'ID':<25} {'Pri':<6} {'Title'}")
+        print("-" * 60)
+        for t in ready_tasks:
+            p = t.get("priority", "med")[:3]
+            print(f"{t['id']:<25} {p:<6} {t['title']}")
+
 
 def install_hooks():
     """Installs the git pre-commit hook."""
@@ -1086,8 +1224,18 @@ def main():
     archive_parser = subparsers.add_parser("archive", parents=[parent_parser], help="Archive a task")
     archive_parser.add_argument("task_id", help="Task ID")
 
+    # Compact
+    compact_parser = subparsers.add_parser("compact", parents=[parent_parser], help="Compact a completed task")
+    compact_parser.add_argument("task_id", help="Task ID")
+    compact_parser.add_argument("--summary", help="Summary text", required=True)
+
+
     # Context
     subparsers.add_parser("context", parents=[parent_parser], help="Show current context (in_progress tasks)")
+    
+    # Ready
+    subparsers.add_parser("ready", parents=[parent_parser], help="Show ready (unblocked) tasks")
+
 
     # Next
     subparsers.add_parser("next", parents=[parent_parser], help="Suggest the next task to work on")
@@ -1149,10 +1297,18 @@ def main():
         delete_task(args.task_id, output_format=fmt)
     elif args.command == "archive":
         archive_task(args.task_id, output_format=fmt)
+    elif args.command == "compact":
+        if not args.summary:
+            print("Error: --summary required for compaction")
+            sys.exit(1)
+        compact_task(args.task_id, args.summary, output_format=fmt)
     elif args.command == "update":
         update_task_status(args.task_id, args.status, output_format=fmt)
     elif args.command == "context":
         get_context(output_format=fmt)
+    elif args.command == "ready":
+        list_ready_tasks(output_format=fmt)
+
     elif args.command == "next":
         get_next_task(output_format=fmt)
     elif args.command == "migrate":

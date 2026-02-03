@@ -12,6 +12,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.getenv("TASKS_REPO_ROOT", os.path.dirname(SCRIPT_DIR))
 sys.path.append(REPO_ROOT)
 from scripts.lib import io
+from collections import defaultdict
+
 
 MEMORY_DIR = os.path.join(REPO_ROOT, "docs", "memories")
 
@@ -20,6 +22,12 @@ def init_memory():
     os.makedirs(MEMORY_DIR, exist_ok=True)
     if not os.path.exists(os.path.join(MEMORY_DIR, ".keep")):
         io.write_atomic(os.path.join(MEMORY_DIR, ".keep"), "")
+    
+    # Ensure entities index exists
+    entities_path = os.path.join(MEMORY_DIR, "entities.json")
+    if not os.path.exists(entities_path):
+         io.write_json(entities_path, {})
+
 
 def slugify(text):
     """Creates a URL-safe slug from text."""
@@ -151,6 +159,78 @@ def list_memories(tag=None, limit=20, output_format="text"):
         for m in memories:
             print(f"{m['date']:<12} {m['title']}")
 
+def index_memories(output_format="text"):
+    """Scans tasks and memories to build an Entity Index."""
+    print("Indexing entities...")
+    entities = defaultdict(list)
+    
+    # helper to add ref
+    def add_ref(entity, ref_id):
+        if ref_id not in entities[entity]:
+            entities[entity].append(ref_id)
+
+    # 1. Scan Tasks
+    docs_dir = os.path.join(REPO_ROOT, "docs", "tasks")
+    for root, dirs, files in os.walk(docs_dir):
+        for file in files:
+            if not file.endswith(".md"): continue
+            path = os.path.join(root, file)
+            try:
+                content = io.read_text(path)
+                # Extract ID
+                m_id = re.search(r'^id:\s*(.*)', content, re.MULTILINE)
+                if not m_id: continue
+                task_id = m_id.group(1).strip()
+                
+                # Extract Tags (if any - tasks usually don't have tags but might in future)
+                m_tags = re.search(r'^tags:\s*(\[.*\])', content, re.MULTILINE)
+                if m_tags:
+                    try:
+                        tags = json.loads(m_tags.group(1))
+                        for t in tags: add_ref(t, task_id)
+                    except: pass
+                
+                # Extract WikiLinks [[Entity]]
+                wikilinks = re.findall(r'\[\[(.*?)\]\]', content)
+                for link in wikilinks:
+                    add_ref(link, task_id)
+                    
+            except: pass
+
+    # 2. Scan Memories
+    if os.path.exists(MEMORY_DIR):
+        for file in os.listdir(MEMORY_DIR):
+            if not file.endswith(".md"): continue
+            path = os.path.join(MEMORY_DIR, file)
+            try:
+                content = io.read_text(path)
+                # Use filename as ID for memories
+                mem_id = file
+                
+                # Tags
+                m_tags = re.search(r'^tags:\s*(\[.*\])', content, re.MULTILINE)
+                if m_tags:
+                    try:
+                        tags = json.loads(m_tags.group(1))
+                        for t in tags: add_ref(t, mem_id)
+                    except: pass
+                
+                # WikiLinks
+                wikilinks = re.findall(r'\[\[(.*?)\]\]', content)
+                for link in wikilinks:
+                    add_ref(link, mem_id)
+            except: pass
+
+    # Save Index
+    index_path = os.path.join(MEMORY_DIR, "entities.json")
+    io.write_json(index_path, entities)
+    
+    if output_format == "json":
+        print(json.dumps({"success": True, "count": len(entities), "path": index_path}))
+    else:
+        print(f"Indexed {len(entities)} entities to {index_path}")
+
+
 def read_memory(filename, output_format="text"):
     path = os.path.join(MEMORY_DIR, filename)
     if not os.path.exists(path):
@@ -220,6 +300,10 @@ def main():
     read_parser = subparsers.add_parser("read", parents=[parent_parser], help="Read a memory")
     read_parser.add_argument("filename", help="Filename or slug part")
 
+    # Index
+    subparsers.add_parser("index", parents=[parent_parser], help="Rebuild entity index")
+
+
     args = parser.parse_args()
 
     # Default format to text if not present (though parents default handles it)
@@ -231,6 +315,9 @@ def main():
         list_memories(args.tag, args.limit, fmt)
     elif args.command == "read":
         read_memory(args.filename, fmt)
+    elif args.command == "index":
+        index_memories(fmt)
+
     else:
         parser.print_help()
 

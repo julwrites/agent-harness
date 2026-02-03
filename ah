@@ -1,0 +1,63 @@
+#!/bin/bash
+# Agent Harness CLI Wrapper
+
+REPO_ROOT="$(dirname "$0")"
+TASKS_SCRIPT="$REPO_ROOT/scripts/tasks.py"
+MEMORY_SCRIPT="$REPO_ROOT/scripts/memory.py"
+
+function show_help {
+    echo "Agent Harness (ah) - Developer CLI"
+    echo ""
+    echo "Usage: ./ah [command] [args]"
+    echo ""
+    echo "Task Commands:"
+    echo "  list        List tasks"
+    echo "  next        Show next recommended task"
+    echo "  ready       Show strictly ready tasks (unblocked)"
+    echo "  show [ID]   Show task details"
+    echo "  create ...  Create a task"
+    echo "  update ...  Update a task"
+    echo "  compact ... Compact a completed task"
+    echo "  validate    Validate task graph"
+    echo "  visualize   Visualize task graph"
+    echo ""
+    echo "Memory Commands:"
+    echo "  index       Rebuild entity index"
+    echo "  mem-list    List memories"
+    echo "  mem-create  Create memory"
+    echo ""
+    exit 1
+}
+
+CMD="$1"
+shift
+
+case "$CMD" in
+    # Tasks Mapping
+    list|next|show|create|update|compact|validate|visualize|archive|delete|context|add-dep|rm-dep|link|unlink)
+        python3 "$TASKS_SCRIPT" "$CMD" "$@"
+        ;;
+    
+    # New 'ready' command (mapped to tasks.py ready, which we will implement next)
+    ready)
+        python3 "$TASKS_SCRIPT" ready "$@"
+        ;;
+
+    # Memory Mapping
+    index)
+        python3 "$MEMORY_SCRIPT" index "$@"
+        ;;
+    mem-list)
+        python3 "$MEMORY_SCRIPT" list "$@"
+        ;;
+    mem-create)
+        python3 "$MEMORY_SCRIPT" create "$@"
+        ;;
+    mem-read)
+        python3 "$MEMORY_SCRIPT" read "$@"
+        ;;
+
+    *)
+        show_help
+        ;;
+esac
