@@ -1071,15 +1071,6 @@ def get_next_task(output_format="text"):
         print(f"Status:   {best['status']}")
         print(f"Priority: {best['priority']}")
         print(f"Type:     {best.get('type', 'task')}")
-    if output_format == "json":
-        print(json.dumps(best))
-    else:
-        print(f"Recommended Next Task (Score: {candidates[0][0]}):")
-        print(f"ID:       {best['id']}")
-        print(f"Title:    {best['title']}")
-        print(f"Status:   {best['status']}")
-        print(f"Priority: {best['priority']}")
-        print(f"Type:     {best.get('type', 'task')}")
         if best.get("sprint"):
              print(f"Sprint:   {best.get('sprint')}")
         print(f"\nRun: scripts/tasks show {best['id']}")
