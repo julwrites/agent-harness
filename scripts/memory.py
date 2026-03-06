@@ -161,7 +161,8 @@ def list_memories(tag=None, limit=20, output_format="text"):
 
 def index_memories(output_format="text"):
     """Scans tasks and memories to build an Entity Index."""
-    print("Indexing entities...")
+    if output_format != "json":
+        print("Indexing entities...")
     entities = defaultdict(list)
     
     # helper to add ref

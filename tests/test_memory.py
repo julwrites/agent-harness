@@ -59,5 +59,30 @@ class TestMemory(unittest.TestCase):
         output = json.loads(sys.stdout.getvalue())
         self.assertIn("Content", output['content'])
 
+    def test_index_memories(self):
+        # Create a mock task with wikilinks
+        task_dir = os.path.join(self.repo_root, "docs", "tasks", "foundation")
+        os.makedirs(task_dir, exist_ok=True)
+        task_file = os.path.join(task_dir, "FOUNDATION-001.md")
+        with open(task_file, "w") as f:
+            f.write("---\nid: FOUNDATION-001\n---\nHere is a wikilink to [[EntityA]] and another to [[EntityB]].")
+
+        # Run index
+        sys.stdout = StringIO()
+        memory.index_memories(output_format="json")
+        output = json.loads(sys.stdout.getvalue())
+        self.assertTrue(output.get("success"))
+
+        # Check entities.json
+        entities_path = os.path.join(self.docs_dir, "entities.json")
+        self.assertTrue(os.path.exists(entities_path))
+        with open(entities_path, "r") as f:
+            entities = json.load(f)
+
+        self.assertIn("EntityA", entities)
+        self.assertIn("FOUNDATION-001", entities["EntityA"])
+        self.assertIn("EntityB", entities)
+        self.assertIn("FOUNDATION-001", entities["EntityB"])
+
 if __name__ == "__main__":
     unittest.main()

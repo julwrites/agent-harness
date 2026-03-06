@@ -363,7 +363,7 @@ def archive_task(task_id, output_format="text"):
             print(msg)
         sys.exit(1)
 
-def compact_task(task_id, summary, output_format="text"):
+def compact_task(task_id, summary=None, summary_tech=None, summary_decisions=None, summary_unresolved=None, output_format="text"):
     """
     Archives a task content and replaces it with a summary stub.
     """
@@ -406,9 +406,22 @@ def compact_task(task_id, summary, output_format="text"):
         lines.append(f"> **Compacted Task**")
         lines.append(f"> Original archived at: `{os.path.relpath(archive_path, REPO_ROOT)}`")
         lines.append("")
-        lines.append("## Summary")
-        lines.append(summary)
-        lines.append("")
+        if summary_tech:
+            lines.append("## Technical Implementation")
+            lines.append(summary_tech)
+            lines.append("")
+        if summary_decisions:
+            lines.append("## Product Decisions")
+            lines.append(summary_decisions)
+            lines.append("")
+        if summary_unresolved:
+            lines.append("## Unresolved / Security Implications")
+            lines.append(summary_unresolved)
+            lines.append("")
+        if summary:
+            lines.append("## Summary")
+            lines.append(summary)
+            lines.append("")
         
         stub_content = "\n".join(lines)
         io.write_atomic(filepath, stub_content)
@@ -1218,7 +1231,10 @@ def main():
     # Compact
     compact_parser = subparsers.add_parser("compact", parents=[parent_parser], help="Compact a completed task")
     compact_parser.add_argument("task_id", help="Task ID")
-    compact_parser.add_argument("--summary", help="Summary text", required=True)
+    compact_parser.add_argument("--summary", help="General summary text (legacy/fallback)")
+    compact_parser.add_argument("--summary-tech", help="Technical Implementation summary")
+    compact_parser.add_argument("--summary-decisions", help="Product Decisions summary")
+    compact_parser.add_argument("--summary-unresolved", help="Unresolved / Security Implications summary")
 
 
     # Context
@@ -1289,10 +1305,10 @@ def main():
     elif args.command == "archive":
         archive_task(args.task_id, output_format=fmt)
     elif args.command == "compact":
-        if not args.summary:
-            print("Error: --summary required for compaction")
+        if not any([args.summary, args.summary_tech, args.summary_decisions, args.summary_unresolved]):
+            print("Error: At least one summary type required for compaction")
             sys.exit(1)
-        compact_task(args.task_id, args.summary, output_format=fmt)
+        compact_task(args.task_id, summary=args.summary, summary_tech=args.summary_tech, summary_decisions=args.summary_decisions, summary_unresolved=args.summary_unresolved, output_format=fmt)
     elif args.command == "update":
         update_task_status(args.task_id, args.status, output_format=fmt)
     elif args.command == "context":
