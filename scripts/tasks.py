@@ -631,7 +631,7 @@ def update_frontmatter_field(filepath, field, value):
     io.write_atomic(filepath, new_content)
     return True
 
-def add_dependency(task_id, dep_id, output_format="text"):
+def add_dependency(task_id, dep_id, output_format="text", link_type="dependencies"):
     filepath = find_task_file(task_id)
     if not filepath:
         msg = f"Error: Task ID {task_id} not found."
@@ -640,27 +640,27 @@ def add_dependency(task_id, dep_id, output_format="text"):
 
     # Verify dep exists
     if not find_task_file(dep_id):
-         msg = f"Error: Dependency Task ID {dep_id} not found."
+         msg = f"Error: Target Task ID {dep_id} not found."
          print(json.dumps({"error": msg}) if output_format == "json" else msg)
          sys.exit(1)
 
     content = io.read_text(filepath)
 
     task_data = parse_task_content(content, filepath)
-    deps = task_data.get("dependencies", [])
+    links = task_data.get(link_type, [])
 
-    if dep_id in deps:
-        msg = f"Task {task_id} already depends on {dep_id}."
+    if dep_id in links:
+        msg = f"Task {task_id} already has {link_type} {dep_id}."
         print(json.dumps({"message": msg}) if output_format == "json" else msg)
         return
 
-    deps.append(dep_id)
-    update_frontmatter_field(filepath, "dependencies", deps)
+    links.append(dep_id)
+    update_frontmatter_field(filepath, link_type, links)
 
-    msg = f"Added dependency: {task_id} -> {dep_id}"
+    msg = f"Added {link_type}: {task_id} -> {dep_id}"
     print(json.dumps({"success": True, "message": msg}) if output_format == "json" else msg)
 
-def remove_dependency(task_id, dep_id, output_format="text"):
+def remove_dependency(task_id, dep_id, output_format="text", link_type="dependencies"):
     filepath = find_task_file(task_id)
     if not filepath:
         msg = f"Error: Task ID {task_id} not found."
@@ -670,17 +670,17 @@ def remove_dependency(task_id, dep_id, output_format="text"):
     content = io.read_text(filepath)
 
     task_data = parse_task_content(content, filepath)
-    deps = task_data.get("dependencies", [])
+    links = task_data.get(link_type, [])
 
-    if dep_id not in deps:
-        msg = f"Task {task_id} does not depend on {dep_id}."
+    if dep_id not in links:
+        msg = f"Task {task_id} does not have {link_type} {dep_id}."
         print(json.dumps({"message": msg}) if output_format == "json" else msg)
         return
 
-    deps.remove(dep_id)
-    update_frontmatter_field(filepath, "dependencies", deps)
+    links.remove(dep_id)
+    update_frontmatter_field(filepath, link_type, links)
 
-    msg = f"Removed dependency: {task_id} -x-> {dep_id}"
+    msg = f"Removed {link_type}: {task_id} -x-> {dep_id}"
     print(json.dumps({"success": True, "message": msg}) if output_format == "json" else msg)
 
 def generate_index(output_format="text"):
@@ -1273,11 +1273,13 @@ def main():
     link_parser = subparsers.add_parser("link", parents=[parent_parser], help="Add a dependency")
     link_parser.add_argument("task_id", help="Task ID")
     link_parser.add_argument("dep_id", help="Dependency Task ID")
+    link_parser.add_argument("--type", choices=["dependencies", "part_of", "related_to"], default="dependencies", help="Type of link to add")
 
     # Unlink (Remove Dependency)
     unlink_parser = subparsers.add_parser("unlink", parents=[parent_parser], help="Remove a dependency")
     unlink_parser.add_argument("task_id", help="Task ID")
     unlink_parser.add_argument("dep_id", help="Dependency Task ID")
+    unlink_parser.add_argument("--type", choices=["dependencies", "part_of", "related_to"], default="dependencies", help="Type of link to remove")
 
     
     args = parser.parse_args()
@@ -1331,9 +1333,9 @@ def main():
     elif args.command == "index":
         generate_index(output_format=fmt)
     elif args.command == "link":
-        add_dependency(args.task_id, args.dep_id, output_format=fmt)
+        add_dependency(args.task_id, args.dep_id, output_format=fmt, link_type=args.type)
     elif args.command == "unlink":
-        remove_dependency(args.task_id, args.dep_id, output_format=fmt)
+        remove_dependency(args.task_id, args.dep_id, output_format=fmt, link_type=args.type)
     else:
         parser.print_help()
 
