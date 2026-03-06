@@ -36,4 +36,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --admin --rebase --delete-branch "$PR_URL"
+        run: |
+          gh pr review --approve "$PR_URL" || true
+          gh pr merge --rebase --delete-branch "$PR_URL"
