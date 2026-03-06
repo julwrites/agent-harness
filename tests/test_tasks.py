@@ -293,5 +293,27 @@ class TestTasks(unittest.TestCase):
         task_b_updated = json.loads(sys.stdout.getvalue())
         self.assertEqual(task_b_updated['status'], "in_progress")
 
+    def test_breakdown_task(self):
+        tasks.create_task("features", "Breakdown Feature", "Feature description")
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_id = [t for t in data if t['title'] == "Breakdown Feature"][0]['id']
+
+        sys.stdout = StringIO()
+        tasks.breakdown_task(task_id, output_format="text")
+        output = sys.stdout.getvalue()
+
+        self.assertIn("=== Micro-Planning Breakdown", output)
+        self.assertIn("Title: Breakdown Feature", output)
+        self.assertIn("Feature description", output)
+        self.assertIn("--- INSTRUCTIONS FOR AI AGENT ---", output)
+
+        sys.stdout = StringIO()
+        tasks.breakdown_task(task_id, output_format="json")
+        output = json.loads(sys.stdout.getvalue())
+        self.assertEqual(output['task_id'], task_id)
+        self.assertEqual(output['action'], "breakdown")
+
 if __name__ == "__main__":
     unittest.main()

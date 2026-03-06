@@ -438,6 +438,40 @@ def compact_task(task_id, summary=None, summary_tech=None, summary_decisions=Non
         sys.exit(1)
 
 
+def breakdown_task(task_id, output_format="text"):
+    """Provides instructions to break down a task into micro-tasks."""
+    filepath = find_task_file(task_id)
+    if not filepath:
+        if output_format == "json":
+            print(json.dumps({"error": f"Task {task_id} not found."}))
+        else:
+            print(f"Error: Task {task_id} not found.")
+        sys.exit(1)
+
+    with open(filepath, "r") as f:
+        content = f.read()
+
+    data = parse_task_content(content, filepath)
+
+    if output_format == "json":
+        print(json.dumps({
+            "task_id": task_id,
+            "action": "breakdown",
+            "message": "Ready for micro-planning breakdown."
+        }))
+    else:
+        print(f"=== Micro-Planning Breakdown for {task_id} ===")
+        print(f"Title: {data.get('title', 'Unknown')}")
+        print(f"Description:\n{data.get('content', 'No description')}")
+        print("\n--- INSTRUCTIONS FOR AI AGENT ---")
+        print("You are the Task Agent. Your goal is to translate the requirements above into atomic, trackable tasks.")
+        print("1. Read the feature description or design document above.")
+        print("2. Break down the work into bite-sized micro-tasks.")
+        print(f"3. For each micro-task, use the `scripts/tasks.py create` command to create it in the system.")
+        print(f"4. Ensure every created task is linked to this parent task by specifying `--part-of {task_id}`.")
+        print("5. If a micro-task blocks another, specify the dependency using `--dependencies <BLOCKING_TASK_ID>` when creating the dependent task.")
+        print("6. Only create tasks that are strictly necessary to complete this parent task.")
+
 def migrate_to_frontmatter(content, task_data):
     """Converts legacy content to Frontmatter format."""
     # Strip the header section from legacy content
@@ -1236,6 +1270,10 @@ def main():
     compact_parser.add_argument("--summary-decisions", help="Product Decisions summary")
     compact_parser.add_argument("--summary-unresolved", help="Unresolved / Security Implications summary")
 
+    # Breakdown
+    breakdown_parser = subparsers.add_parser("breakdown", parents=[parent_parser], help="Break down a feature into bite-sized tasks")
+    breakdown_parser.add_argument("task_id", help="ID of the task to break down")
+
 
     # Context
     subparsers.add_parser("context", parents=[parent_parser], help="Show current context (in_progress tasks)")
@@ -1311,6 +1349,8 @@ def main():
             print("Error: At least one summary type required for compaction")
             sys.exit(1)
         compact_task(args.task_id, summary=args.summary, summary_tech=args.summary_tech, summary_decisions=args.summary_decisions, summary_unresolved=args.summary_unresolved, output_format=fmt)
+    elif args.command == "breakdown":
+        breakdown_task(args.task_id, output_format=fmt)
     elif args.command == "update":
         update_task_status(args.task_id, args.status, output_format=fmt)
     elif args.command == "context":
