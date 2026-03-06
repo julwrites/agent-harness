@@ -31,3 +31,6 @@ This file is auto-generated. Do not edit manually.
 | code_index_search | **L0** | Search for symbols in the code index (fuzzy match). | `code_index_search(query, format)` |
 | code_index_lookup | **L0** | Lookup a specific symbol definition or symbols in a file. | `code_index_lookup(target, format)` |
 | code_index_references | **L0** | Find text references to a symbol in the codebase. | `code_index_references(symbol, format)` |
+| tdd_state | **L0** | Get the current TDD Enforcer state. | `tdd_state()` |
+| tdd_run | **L1** | Run the TDD Enforcer for the current state. | `tdd_run()` |
+| tdd_reset | **L0** | Reset the TDD Enforcer state back to RED. | `tdd_reset()` |
