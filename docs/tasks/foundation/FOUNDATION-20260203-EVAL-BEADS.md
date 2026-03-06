@@ -1,6 +1,6 @@
 ---
 id: FOUNDATION-20260203-EVAL-BEADS
-status: pending
+status: completed
 title: Evaluate Beads Features for Agent Harness Adoption
 priority: high
 created: 2026-02-03 00:30:00
@@ -67,5 +67,5 @@ The [Beads](https://github.com/steveyegge/beads) project represents a significan
 - [ ] **CLI Polish**: Alias `./scripts/tasks.py` to `tasks` or `ah` (AgentHarness) for ergonomics.
 
 ## Acceptance Criteria
-- [ ] Roadmap approved by user.
-- [ ] Implementation tasks created for Phase 1.
+- [x] Roadmap approved by user.
+- [x] Implementation tasks created for Phase 1.
