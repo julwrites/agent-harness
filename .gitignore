@@ -12,3 +12,4 @@ venv/
 .agents/messages/**/*.json
 !.agents/**/.keep
 logs/
+.agents/
