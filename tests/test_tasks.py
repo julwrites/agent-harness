@@ -47,6 +47,21 @@ class TestTasks(unittest.TestCase):
         self.assertEqual(len(task_files), 1)
         self.assertTrue(task_files[0].startswith("REVIEW-"))
 
+    def test_create_task_with_related(self):
+        tasks.create_task("foundation", "My Linked Task", "Description", part_of=["EPIC-1"], related_to=["TASK-2"])
+        output = sys.stdout.getvalue()
+        self.assertIn("Created task:", output)
+
+        files = os.listdir(os.path.join(self.docs_dir, "foundation"))
+        task_files = [f for f in files if f.endswith(".md") and f != ".keep"]
+        self.assertEqual(len(task_files), 1)
+
+        with open(os.path.join(self.docs_dir, "foundation", task_files[0]), "r") as f:
+            content = f.read()
+            self.assertIn("title: My Linked Task", content)
+            self.assertIn("part_of: [EPIC-1]", content)
+            self.assertIn("related_to: [TASK-2]", content)
+
     def test_create_task(self):
         tasks.create_task("foundation", "My Task", "Description")
         output = sys.stdout.getvalue()
@@ -158,6 +173,70 @@ class TestTasks(unittest.TestCase):
         data = json.loads(sys.stdout.getvalue())
         ids = [t['id'] for t in data]
         self.assertIn(task_id, ids)
+
+    def test_link_part_of(self):
+        tasks.create_task("foundation", "Task Child", "Desc")
+        tasks.create_task("foundation", "Task Parent", "Desc")
+
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        child_id = [t for t in data if t['title'] == "Task Child"][0]['id']
+        parent_id = [t for t in data if t['title'] == "Task Parent"][0]['id']
+
+        # Link as part_of
+        sys.stdout = StringIO()
+        tasks.add_dependency(child_id, parent_id, output_format="json", link_type="part_of")
+
+        # Verify
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        child_task = [t for t in data if t['id'] == child_id][0]
+        self.assertIn(parent_id, child_task['part_of'])
+
+        # Unlink as part_of
+        sys.stdout = StringIO()
+        tasks.remove_dependency(child_id, parent_id, output_format="json", link_type="part_of")
+
+        # Verify
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        child_task = [t for t in data if t['id'] == child_id][0]
+        self.assertNotIn(parent_id, child_task['part_of'])
+
+    def test_link_related_to(self):
+        tasks.create_task("foundation", "Task A", "Desc")
+        tasks.create_task("foundation", "Task B", "Desc")
+
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_a_id = [t for t in data if t['title'] == "Task A"][0]['id']
+        task_b_id = [t for t in data if t['title'] == "Task B"][0]['id']
+
+        # Link as related_to
+        sys.stdout = StringIO()
+        tasks.add_dependency(task_a_id, task_b_id, output_format="json", link_type="related_to")
+
+        # Verify
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_a = [t for t in data if t['id'] == task_a_id][0]
+        self.assertIn(task_b_id, task_a['related_to'])
+
+        # Unlink as related_to
+        sys.stdout = StringIO()
+        tasks.remove_dependency(task_a_id, task_b_id, output_format="json", link_type="related_to")
+
+        # Verify
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        task_a = [t for t in data if t['id'] == task_a_id][0]
+        self.assertNotIn(task_b_id, task_a['related_to'])
 
     def test_enforce_dependencies(self):
         # Create Task A (Pending)
