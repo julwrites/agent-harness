@@ -536,6 +536,36 @@
         },
         "required": ["symbol"]
       }
+    },
+    {
+      "name": "tdd_state",
+      "description": "Get the current TDD Enforcer state.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/tdd.py state",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "tdd_run",
+      "description": "Run the TDD Enforcer for the current state.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/tdd.py run",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "tdd_reset",
+      "description": "Reset the TDD Enforcer state back to RED.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/tdd.py reset",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
     }
   ]
 }

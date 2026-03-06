@@ -137,3 +137,18 @@ function code_index_references() {
     # Risk Level: L0
     python3 scripts/code_index.py references "$@"
 }
+
+function tdd_state() {
+    # Risk Level: L0
+    python3 scripts/tdd.py state "$@"
+}
+
+function tdd_run() {
+    # Risk Level: L1
+    python3 scripts/tdd.py run "$@"
+}
+
+function tdd_reset() {
+    # Risk Level: L0
+    python3 scripts/tdd.py reset "$@"
+}
