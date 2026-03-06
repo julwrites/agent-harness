@@ -22,6 +22,10 @@ Command: `python3 scripts/memory.py list [--tag <tag>] [--limit <limit>] [--form
 Read a specific memory file.
 Command: `python3 scripts/memory.py read <filename_or_slug> [--format json]`
 
+### Index Memories (Entity Indexer)
+Scans tasks and memories for wikilinks (e.g. `[[Entity]]`) and tags to build an Entity Index (`docs/memories/entities.json`).
+Command: `python3 scripts/memory.py index [--format json]`
+
 ## Usage Instructions
 - Use `create` to store important architectural decisions, lessons learned, or long-term context.
 - Use `list` to recall past memories.
