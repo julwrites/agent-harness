@@ -40,6 +40,29 @@
       }
     },
     {
+      "name": "task_breakdown",
+      "description": "Break down a feature into bite-sized tasks.",
+      "risk_level": "L1",
+      "implementation": "python3 scripts/tasks.py breakdown {task_id} --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The ID of the task to break down."
+          },
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      }
+    },
+    {
       "name": "task_list",
       "description": "List existing tasks, optionally filtered by status or category.",
       "risk_level": "L0",

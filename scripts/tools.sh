@@ -8,6 +8,11 @@ function task_create() {
     python3 scripts/tasks.py create "$@"
 }
 
+function task_breakdown() {
+    # Risk Level: L1
+    python3 scripts/tasks.py breakdown "$@"
+}
+
 function task_list() {
     # Risk Level: L0
     python3 scripts/tasks.py list "$@"
