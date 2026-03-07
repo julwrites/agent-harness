@@ -5,6 +5,7 @@ This file is auto-generated. Do not edit manually.
 | Tool | Risk | Description | Usage |
 | :--- | :--- | :--- | :--- |
 | task_create | **L1** | Create a new development task. | `task_create(category, title, description)` |
+| task_breakdown | **L1** | Break down a feature into bite-sized tasks. | `task_breakdown(task_id, format)` |
 | task_list | **L0** | List existing tasks, optionally filtered by status or category. | `task_list(status, category, archived)` |
 | task_update | **L1** | Update the status of an existing task. | `task_update(task_id, status)` |
 | task_show | **L0** | Show the details of a specific task. | `task_show(task_id)` |
