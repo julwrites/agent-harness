@@ -1,6 +1,6 @@
 ---
 id: FEATURES-20260305-085909-JDI
-status: pending
+status: completed
 title: Integrate Superpowers Workflows
 priority: medium
 created: 2026-03-05 08:59:09
@@ -17,7 +17,7 @@ See the detailed architectural document in `docs/architecture/SUPERPOWERS_INTEGR
 
 ## Subtasks
 
-- [ ] Implement Phase 1: Planning & Isolation (`scripts/design.py`, `scripts/workspace.py`)
-- [ ] Implement Phase 2: Granular Execution & TDD (`scripts/tasks.py breakdown`, `scripts/tdd.py`)
-- [ ] Implement Phase 3: Subagent Orchestration & Review (`scripts/orchestrator.py`, `scripts/review.py`)
-- [ ] Update `AGENTS.md` and `docs/tasks/GUIDE.md` to reflect new workflows.
+- [x] Implement Phase 1: Planning & Isolation (`scripts/design.py`, `scripts/workspace.py`)
+- [x] Implement Phase 2: Granular Execution & TDD (`scripts/tasks.py breakdown`, `scripts/tdd.py`)
+- [x] Implement Phase 3: Subagent Orchestration & Review (`scripts/orchestrator.py`, `scripts/review.py`)
+- [x] Update `AGENTS.md` and `docs/tasks/GUIDE.md` to reflect new workflows.
