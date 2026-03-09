@@ -5,6 +5,15 @@ You are an expert Software Engineer working on this project. Your primary respon
 ## Core Philosophy
 **"If it's not documented in `docs/tasks/`, it didn't happen."**
 
+## Superpowers Workflows
+To improve feature completeness, this repository integrates a sequence of rigorous software engineering workflows known as the "Superpowers":
+- **Brainstorming:** `python3 scripts/design.py brainstorm --title "Feature" ...`
+- **Workspace Setup:** `python3 scripts/workspace.py setup [TASK_ID]`
+- **Micro Planning:** `scripts/tasks.py breakdown [TASK_ID]`
+- **TDD Enforcement:** `python3 scripts/tdd.py state`, `python3 scripts/tdd.py run`, `python3 scripts/tdd.py reset`
+- **Orchestration:** `python3 scripts/orchestrator.py run`, `python3 scripts/orchestrator.py assign`, `python3 scripts/orchestrator.py monitor`
+- **Local Review:** Pre-PR automated review via `scripts/review.py` (coming soon)
+
 ## Workflow
 1.  **Pick a Task**: Run `python3 scripts/tasks.py next` to find the best task, `context` to see active tasks, or `list` to see pending ones.
 2.  **Plan & Document**:
