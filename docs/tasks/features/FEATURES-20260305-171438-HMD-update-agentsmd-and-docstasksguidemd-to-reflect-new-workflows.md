@@ -1,6 +1,6 @@
 ---
 id: FEATURES-20260305-171438-HMD
-status: pending
+status: completed
 title: Update AGENTS.md and docs/tasks/GUIDE.md to reflect new workflows
 priority: medium
 created: 2026-03-05 17:14:38
