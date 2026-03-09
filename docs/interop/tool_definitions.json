@@ -589,6 +589,27 @@
         "type": "object",
         "properties": {}
       }
+    },
+    {
+      "name": "local_review",
+      "description": "Perform a local review of the code against a specific task's requirements to flag any critical severity issues.",
+      "risk_level": "L0",
+      "implementation": "python3 scripts/review.py check --task-id {task_id} --format {format}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The ID of the task to review."
+          },
+          "format": {
+            "type": "string",
+            "enum": ["text", "json"],
+            "description": "Output format."
+          }
+        },
+        "required": ["task_id"]
+      }
     }
   ]
 }
