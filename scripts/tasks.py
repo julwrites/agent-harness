@@ -922,25 +922,27 @@ def validate_all(output_format="text"):
                 if "type" in frontmatter and frontmatter["type"] not in VALID_TYPES:
                     errors.append(f"{file}: Invalid type '{frontmatter['type']}'")
 
-                # Parse dependencies
-                deps_str = frontmatter.get("dependencies") or ""
-                # Use shared parsing logic
-                deps = []
-                if deps_str:
-                    cleaned = deps_str.strip(" []")
-                    if cleaned:
-                        deps = [d.strip() for d in cleaned.split(",") if d.strip()]
+                # Parse dependencies, part_of, related_to
+                def parse_link_list(val):
+                    if not val: return []
+                    val = str(val).strip(" []")
+                    if not val: return []
+                    return [d.strip() for d in val.split(",") if d.strip()]
+
+                deps = parse_link_list(frontmatter.get("dependencies"))
+                part_of = parse_link_list(frontmatter.get("part_of"))
+                related_to = parse_link_list(frontmatter.get("related_to"))
 
                 # Check for Duplicate IDs
                 if task_id in all_tasks:
                     errors.append(f"{file}: Duplicate Task ID '{task_id}' (also in {all_tasks[task_id]['path']})")
 
-                all_tasks[task_id] = {"path": path, "deps": deps}
+                all_tasks[task_id] = {"path": path, "deps": deps, "part_of": part_of, "related_to": related_to}
 
             except Exception as e:
                 errors.append(f"{file}: Error reading/parsing: {str(e)}")
 
-    # Pass 2: Dependency Validation & Cycle Detection
+    # Pass 2: Link Validation & Cycle Detection
     visited = set()
     recursion_stack = set()
 
@@ -966,12 +968,14 @@ def validate_all(output_format="text"):
         return False
 
     for task_id, info in all_tasks.items():
-        # Check dependencies exist
-        for dep_id in info["deps"]:
-            if dep_id not in all_tasks:
-                errors.append(f"{os.path.basename(info['path'])}: Invalid dependency '{dep_id}' (task not found)")
+        # Check links exist
+        for link_type in ["deps", "part_of", "related_to"]:
+            for linked_id in info[link_type]:
+                if linked_id not in all_tasks:
+                    field_name = "dependency" if link_type == "deps" else link_type
+                    errors.append(f"{os.path.basename(info['path'])}: Invalid {field_name} '{linked_id}' (task not found)")
 
-        # Check cycles
+        # Check cycles (only on dependencies)
         if task_id not in visited:
             cycle_path = [task_id]
             if detect_cycle(task_id, cycle_path):

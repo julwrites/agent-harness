@@ -315,5 +315,42 @@ class TestTasks(unittest.TestCase):
         self.assertEqual(output['task_id'], task_id)
         self.assertEqual(output['action'], "breakdown")
 
+    def test_validate_links(self):
+        # Create a task with invalid links
+        tasks.create_task("foundation", "Task Invalid Links", "Desc", part_of=["INVALID-EPIC"], related_to=["INVALID-REL"])
+
+        # Verify validation fails
+        sys.stdout = StringIO()
+        tasks.validate_all(output_format="json")
+        output = json.loads(sys.stdout.getvalue())
+
+        self.assertFalse(output["valid"])
+        error_msgs = "\n".join(output["errors"])
+        self.assertIn("Invalid part_of 'INVALID-EPIC'", error_msgs)
+        self.assertIn("Invalid related_to 'INVALID-REL'", error_msgs)
+
+        # Create valid tasks and link to them
+        tasks.create_task("foundation", "Valid Epic", "Desc", task_type="epic")
+        tasks.create_task("foundation", "Valid Rel", "Desc")
+
+        sys.stdout = StringIO()
+        tasks.list_tasks(output_format="json")
+        data = json.loads(sys.stdout.getvalue())
+        epic_id = [t for t in data if t['title'] == "Valid Epic"][0]['id']
+        rel_id = [t for t in data if t['title'] == "Valid Rel"][0]['id']
+        invalid_task_id = [t for t in data if t['title'] == "Task Invalid Links"][0]['id']
+
+        # Update the invalid task to valid links
+        filepath = tasks.find_task_file(invalid_task_id)
+        tasks.update_frontmatter_field(filepath, "part_of", [epic_id])
+        tasks.update_frontmatter_field(filepath, "related_to", [rel_id])
+
+        # Verify validation succeeds
+        sys.stdout = StringIO()
+        tasks.validate_all(output_format="json")
+        output = json.loads(sys.stdout.getvalue())
+
+        self.assertTrue(output["valid"], f"Validation failed with errors: {output.get('errors')}")
+
 if __name__ == "__main__":
     unittest.main()
