@@ -5,7 +5,7 @@ title: Test V2 Graph Features
 priority: low
 created: 2026-02-03 01:00:00
 category: foundation
-part_of: [FOUNDATION-20260203-EVAL]
+part_of: [FOUNDATION-20260309-111149-LVP]
 dependencies: [FOUNDATION-20260203-EVAL-MEMORY]
 type: task
 estimate: 1
