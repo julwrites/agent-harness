@@ -157,3 +157,8 @@ function tdd_reset() {
     # Risk Level: L0
     python3 scripts/tdd.py reset "$@"
 }
+
+function local_review() {
+    # Risk Level: L0
+    python3 scripts/review.py check "$@"
+}

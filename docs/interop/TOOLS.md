@@ -35,3 +35,4 @@ This file is auto-generated. Do not edit manually.
 | tdd_state | **L0** | Get the current TDD Enforcer state. | `tdd_state()` |
 | tdd_run | **L1** | Run the TDD Enforcer for the current state. | `tdd_run()` |
 | tdd_reset | **L0** | Reset the TDD Enforcer state back to RED. | `tdd_reset()` |
+| local_review | **L0** | Perform a local review of the code against a specific task's requirements to flag any critical severity issues. | `local_review(task_id, format)` |

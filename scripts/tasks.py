@@ -2,6 +2,7 @@
 import os
 import sys
 import shutil
+import subprocess
 import argparse
 import re
 import json
@@ -536,6 +537,32 @@ def update_task_status(task_id, new_status, output_format="text"):
         sys.exit(1)
 
     content = io.read_text(filepath)
+
+    # Pre-PR automated local review
+    if new_status == "review_requested":
+        review_cmd = [sys.executable, os.path.join(SCRIPT_DIR, "review.py"), "check", "--task-id", task_id]
+        if output_format == "json":
+            review_cmd.extend(["--format", "json"])
+
+        try:
+            result = subprocess.run(review_cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                if output_format == "json":
+                    try:
+                        print(result.stdout)
+                    except Exception:
+                        print(json.dumps({"error": f"Critical issues found during local review:\n{result.stderr}"}))
+                else:
+                    print(result.stdout)
+                    print(result.stderr)
+                sys.exit(1)
+        except Exception as e:
+            msg = f"Error running local review: {e}"
+            if output_format == "json":
+                print(json.dumps({"error": msg}))
+            else:
+                print(msg)
+            sys.exit(1)
 
     # Check dependencies if moving to active status
     if new_status in ["in_progress", "review_requested", "verified", "completed"]:
