@@ -104,7 +104,7 @@ The system has been enhanced with several integrated workflow commands to guide 
 - **Micro Planning:** `scripts/tasks.py breakdown [TASK_ID]`
 - **TDD Enforcement:** `python3 scripts/tdd.py state`, `python3 scripts/tdd.py run`, `python3 scripts/tdd.py reset`
 - **Orchestration:** `python3 scripts/orchestrator.py run`, `python3 scripts/orchestrator.py assign`, `python3 scripts/orchestrator.py monitor`
-- **Local Review:** Pre-PR automated review via `scripts/review.py` (coming soon)
+- **Local Review:** Pre-PR automated review via `scripts/review.py`
 
 ## Agile Methodology
 
