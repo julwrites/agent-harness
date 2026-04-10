@@ -1,0 +1,70 @@
+pub mod cli;
+pub mod github;
+pub mod simple;
+pub mod complex;
+pub mod tui;
+pub mod api;
+
+use clap::Parser;
+use cli::Cli;
+use github::GitHubFetcher;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let cli = Cli::parse();
+
+    // Check if the user specifically wants to run the service
+    if let Some(cli::Commands::Service { port }) = cli.command {
+        api::run_service(port).await?;
+        return Ok(());
+    }
+
+    // Headless mode execution
+    if cli.headless {
+        let fetcher = GitHubFetcher::new()?;
+
+        match cli.command {
+            Some(cli::Commands::Init) => {
+                if cli.complex {
+                    complex::run_init(&fetcher, cli.output.as_deref()).await?;
+                } else {
+                    simple::run_init(&fetcher, false).await?;
+                }
+            }
+            Some(cli::Commands::Install { skill }) => {
+                if cli.complex {
+                    complex::run_install(&fetcher, &skill, cli.output.as_deref()).await?;
+                } else {
+                    simple::run_install(&fetcher, &skill, false).await?;
+                }
+            }
+            Some(cli::Commands::Update) => {
+                // Update behaves like Init for simplicity right now
+                println!("Updating harness files...");
+                if cli.complex {
+                    complex::run_init(&fetcher, cli.output.as_deref()).await?;
+                } else {
+                    simple::run_init(&fetcher, false).await?;
+                }
+            }
+            Some(cli::Commands::Uninstall { skill }) => {
+                if cli.complex {
+                    complex::run_uninstall(&fetcher, &skill, cli.output.as_deref()).await?;
+                } else {
+                    simple::run_uninstall(&fetcher, &skill, false).await?;
+                }
+            }
+            Some(cli::Commands::Service { .. }) => {
+                // Handled above
+            }
+            None => {
+                println!("No command provided in headless mode.");
+            }
+        }
+    } else {
+        // Run TUI
+        tui::run().await?;
+    }
+
+    Ok(())
+}
