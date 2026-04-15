@@ -1,0 +1,41 @@
+--- src/simple/mod.rs
++++ src/simple/mod.rs
+@@ -16,7 +16,7 @@
+     Ok(())
+ }
+
+-pub async fn run_install(fetcher: &GitHubFetcher, skill: &str, interactive: bool) -> Result<()> {
++pub async fn run_install(fetcher: &GitHubFetcher, skill: &str, interactive: bool, force: bool) -> Result<()> {
+     println!("Fetching files for skill '{}'...", skill);
+     let files = fetcher.get_skill_files(skill).await?;
+
+@@ -26,7 +26,7 @@
+     }
+
+     for (path, content) in files {
+-        write_file_with_prompt(&path, &content, interactive)?;
++        write_file_with_prompt(&path, &content, interactive, force)?;
+     }
+
+     println!("Skill '{}' installed.", skill);
+@@ -64,7 +64,7 @@
+     println!("Skill '{}' uninstalled.", skill);
+     Ok(())
+ }
+
+-fn write_file_with_prompt(path: &str, content: &str, interactive: bool) -> Result<()> {
++fn write_file_with_prompt(path: &str, content: &str, interactive: bool, force: bool) -> Result<()> {
+     let file_path = Path::new(path);
+
+     if let Some(parent) = file_path.parent() {
+--- src/main.rs
++++ src/main.rs
+@@ -46,7 +46,7 @@
+                 if cli.complex {
+                     complex::run_init(&fetcher, cli.output.as_deref()).await?;
+                 } else {
+-                    simple::run_init(&fetcher, false).await?;
++                    simple::run_init(&fetcher, false, cli.force).await?;
+                 }
+             }
+             Some(cli::Commands::Uninstall { skill }) => {

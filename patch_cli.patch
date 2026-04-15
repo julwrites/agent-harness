@@ -1,0 +1,13 @@
+--- src/cli/mod.rs
++++ src/cli/mod.rs
+@@ -10,6 +10,10 @@
+     #[arg(long, global = true)]
+     pub headless: bool,
+
++    /// Force overwriting existing files in headless mode
++    #[arg(long, global = true)]
++    pub force: bool,
++
+     /// Generate an AI agent prompt instead of directly modifying files
+     #[arg(long, global = true)]
+     pub complex: bool,

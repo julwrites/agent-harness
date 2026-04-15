@@ -75,26 +75,6 @@ fn write_file_with_prompt(path: &str, content: &str, interactive: bool, force: b
     }
 
     if file_path.exists() {
-        if path == ".gitignore" {
-            // Special case: merge .gitignore
-            let existing_content = fs::read_to_string(file_path)?;
-            let existing_lines: Vec<&str> = existing_content.lines().collect();
-            let mut to_append = Vec::new();
-            for line in content.lines() {
-                if !existing_lines.contains(&line) {
-                    to_append.push(line);
-                }
-            }
-            if !to_append.is_empty() {
-                let append_str = format!("\n\n# agent-bootstrap\n{}\n", to_append.join("\n"));
-                fs::write(file_path, existing_content + &append_str)?;
-                println!("Merged '{}'", path);
-            } else {
-                println!("No new lines to merge into '{}'", path);
-            }
-            return Ok(());
-        }
-
         if interactive {
             let overwrite = Confirm::with_theme(&ColorfulTheme::default())
                 .with_prompt(format!("File '{}' already exists. Overwrite?", path))

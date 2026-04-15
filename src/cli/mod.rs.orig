@@ -7,10 +7,6 @@ pub struct Cli {
     #[arg(long, global = true)]
     pub headless: bool,
 
-    /// Force overwriting existing files in headless mode
-    #[arg(long, global = true)]
-    pub force: bool,
-
     /// Generate an AI agent prompt instead of directly modifying files
     #[arg(long, global = true)]
     pub complex: bool,

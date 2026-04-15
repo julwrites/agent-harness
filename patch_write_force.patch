@@ -1,0 +1,17 @@
+--- src/simple/mod.rs
++++ src/simple/mod.rs
+@@ -83,9 +83,12 @@
+                 return Ok(());
+             }
+         } else {
+-            // in non-interactive headless, we just overwrite by default
+-            // (or we could assume skip, let's assume overwrite for harness updates)
+-            println!("Overwriting existing '{}'", path);
++            if force {
++                println!("Overwriting existing '{}' due to --force flag", path);
++            } else {
++                println!("Skipping existing '{}' (use --force to overwrite)", path);
++                return Ok(());
++            }
+         }
+     }
