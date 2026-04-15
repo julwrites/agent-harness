@@ -195,7 +195,7 @@ async fn run_app<B: Backend + std::io::Write>(terminal: &mut Terminal<B>, app: &
                                         terminal.show_cursor()?;
 
                                         let result = match app.operation_mode {
-                                            OperationMode::Simple => simple::run_init(&fetcher, true, false).await,
+                                            OperationMode::Simple => simple::run_init(&fetcher, true).await,
                                             OperationMode::Complex => complex::run_init(&fetcher, None).await,
                                         };
 
@@ -241,7 +241,7 @@ async fn run_app<B: Backend + std::io::Write>(terminal: &mut Terminal<B>, app: &
                                         terminal.show_cursor()?;
 
                                         let result = match app.operation_mode {
-                                            OperationMode::Simple => simple::run_init(&fetcher, true, false).await,
+                                            OperationMode::Simple => simple::run_init(&fetcher, true).await,
                                             OperationMode::Complex => complex::run_init(&fetcher, None).await,
                                         };
 
@@ -291,7 +291,7 @@ async fn run_app<B: Backend + std::io::Write>(terminal: &mut Terminal<B>, app: &
                                     let result = match action {
                                         SkillAction::Install => {
                                             match app.operation_mode {
-                                                OperationMode::Simple => simple::run_install(&fetcher, &skill, true, false).await,
+                                                OperationMode::Simple => simple::run_install(&fetcher, &skill, true).await,
                                                 OperationMode::Complex => complex::run_install(&fetcher, &skill, None).await,
                                             }
                                         }

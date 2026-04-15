@@ -1,0 +1,89 @@
+--- src/simple/mod.rs
++++ src/simple/mod.rs
+@@ -4,11 +4,11 @@
+ use dialoguer::{Confirm, theme::ColorfulTheme};
+ use crate::github::GitHubFetcher;
+
+-pub async fn run_init(fetcher: &GitHubFetcher, interactive: bool) -> Result<()> {
++pub async fn run_init(fetcher: &GitHubFetcher, interactive: bool, force: bool) -> Result<()> {
+     println!("Fetching bootstrap files from julwrites/agent-bootstrap...");
+     let files = fetcher.get_bootstrap_files().await?;
+
+     for (path, content) in files {
+-        write_file_with_prompt(&path, &content, interactive)?;
++        write_file_with_prompt(&path, &content, interactive, force)?;
+     }
+
+     println!("Bootstrap complete.");
+     Ok(())
+ }
+
+-pub async fn run_install(fetcher: &GitHubFetcher, skill: &str, interactive: bool) -> Result<()> {
++pub async fn run_install(fetcher: &GitHubFetcher, skill: &str, interactive: bool, force: bool) -> Result<()> {
+     println!("Fetching files for skill '{}'...", skill);
+     let files = fetcher.get_skill_files(skill).await?;
+
+     if files.is_empty() {
+         println!("No files found for skill '{}'", skill);
+         return Ok(());
+     }
+
+     for (path, content) in files {
+-        write_file_with_prompt(&path, &content, interactive)?;
++        write_file_with_prompt(&path, &content, interactive, force)?;
+     }
+
+     println!("Skill '{}' installed.", skill);
+     Ok(())
+ }
+
+ pub async fn run_uninstall(fetcher: &GitHubFetcher, skill: &str, interactive: bool) -> Result<()> {
+     println!("Fetching files for skill '{}' to determine what to remove...", skill);
+     let files = fetcher.get_skill_files(skill).await?;
+
+     if files.is_empty() {
+         println!("No files found for skill '{}'", skill);
+         return Ok(());
+     }
+
+     for (path, _content) in files {
+@@ -64,30 +64,34 @@
+     println!("Skill '{}' uninstalled.", skill);
+     Ok(())
+ }
+
+-fn write_file_with_prompt(path: &str, content: &str, interactive: bool) -> Result<()> {
++fn write_file_with_prompt(path: &str, content: &str, interactive: bool, force: bool) -> Result<()> {
+     let file_path = Path::new(path);
+
+     if let Some(parent) = file_path.parent() {
+         if !parent.exists() {
+             fs::create_dir_all(parent)?;
+         }
+     }
+
+     if file_path.exists() {
+         if interactive {
+             let overwrite = Confirm::with_theme(&ColorfulTheme::default())
+                 .with_prompt(format!("File '{}' already exists. Overwrite?", path))
+                 .default(false)
+                 .interact()?;
+
+             if !overwrite {
+                 println!("Skipping '{}'", path);
+                 return Ok(());
+             }
+         } else {
+-            // in non-interactive headless, we just overwrite by default
+-            // (or we could assume skip, let's assume overwrite for harness updates)
+-            println!("Overwriting existing '{}'", path);
++            if force {
++                println!("Overwriting existing '{}' due to --force flag", path);
++            } else {
++                println!("Skipping existing '{}' (use --force to overwrite)", path);
++                return Ok(());
++            }
+         }
+     }
+
+     fs::write(file_path, content)?;

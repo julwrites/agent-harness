@@ -1,0 +1,30 @@
+--- src/main.rs
++++ src/main.rs
+@@ -28,15 +28,15 @@
+             Some(cli::Commands::Init) => {
+                 if cli.complex {
+                     complex::run_init(&fetcher, cli.output.as_deref()).await?;
+                 } else {
+-                    simple::run_init(&fetcher, false).await?;
++                    simple::run_init(&fetcher, false, cli.force).await?;
+                 }
+             }
+             Some(cli::Commands::Install { skill }) => {
+                 if cli.complex {
+                     complex::run_install(&fetcher, &skill, cli.output.as_deref()).await?;
+                 } else {
+-                    simple::run_install(&fetcher, &skill, false).await?;
++                    simple::run_install(&fetcher, &skill, false, cli.force).await?;
+                 }
+             }
+             Some(cli::Commands::Update) => {
+                 // Update behaves like Init for simplicity right now
+                 println!("Updating harness files...");
+                 if cli.complex {
+                     complex::run_init(&fetcher, cli.output.as_deref()).await?;
+                 } else {
+-                    simple::run_init(&fetcher, false).await?;
++                    simple::run_init(&fetcher, false, cli.force).await?;
+                 }
+             }
+             Some(cli::Commands::Uninstall { skill }) => {

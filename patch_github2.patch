@@ -1,0 +1,33 @@
+--- src/github/mod.rs
++++ src/github/mod.rs
+@@ -128,6 +128,32 @@
+             results.push((path, content));
+         }
+
++        // Fetch additional files from julwrites/agent-skills
++        let mut agent_skills_files = Vec::new();
++        if let Ok(contents) = self.list_contents("julwrites", "agent-skills", "").await {
++            for item in contents {
++                if item.item_type == "file" && (item.name == "CLAUDE.md" || item.name == "AGENTS.md" || item.name == "GEMINI.md") {
++                    agent_skills_files.push(item.path.clone());
++                } else if item.item_type == "dir" && item.name == ".claude-plugin" {
++                    // Fetch .claude-plugin directory contents
++                    if let Ok(plugin_contents) = self.list_contents("julwrites", "agent-skills", &item.path).await {
++                        for plugin_item in plugin_contents {
++                            if plugin_item.item_type == "file" {
++                                agent_skills_files.push(plugin_item.path.clone());
++                            }
++                        }
++                    }
++                }
++            }
++        }
++
++        for path in agent_skills_files {
++            if let Ok(content) = self.fetch_file_content("julwrites", "agent-skills", &path).await {
++                results.push((path, content));
++            }
++        }
++
+         Ok(results)
+     }

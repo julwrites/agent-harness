@@ -44,7 +44,7 @@ async fn main() -> anyhow::Result<()> {
                 if cli.complex {
                     complex::run_init(&fetcher, cli.output.as_deref()).await?;
                 } else {
-                    simple::run_init(&fetcher, false, cli.force).await?;
+                    simple::run_init(&fetcher, false).await?;
                 }
             }
             Some(cli::Commands::Uninstall { skill }) => {

@@ -1,0 +1,32 @@
+--- src/github/mod.rs
++++ src/github/mod.rs
+@@ -99,14 +99,28 @@
+                         if sub_item.item_type == "file" {
+                             paths_to_fetch.push(sub_item.path.clone());
+                         } else if sub_item.item_type == "dir" {
++                             // Skip .github/workflows/
++                             if item.name == ".github" && sub_item.name == "workflows" {
++                                 continue;
++                             }
++
+                              if let Ok(sub_dir_contents) = self.list_contents("julwrites", "agent-bootstrap", &sub_item.path).await {
+                                   for sub_sub_item in sub_dir_contents {
+                                       if sub_sub_item.item_type == "file" {
++                                          // Skip .agents/messages/receiver-*/ test directories and similar
++                                          // Actually, the structure is `.agents/messages/receiver-abc/...`
++                                          // So if sub_sub_item is a file, we can just check if it starts with ".agents/messages/receiver-"
++                                          // Wait, if it's .agents/messages/receiver-abc, that's a directory!
++                                          // Let's just skip anything in .agents/messages/ that isn't a file we directly want,
++                                          // but to match the problem description, we should skip test/scratch dirs in .agents/messages/
+                                           paths_to_fetch.push(sub_sub_item.path.clone());
++                                      } else if sub_sub_item.item_type == "dir" && sub_sub_item.path.starts_with(".agents/messages/") {
++                                          // Skip subdirectories inside .agents/messages
++                                          continue;
+                                       }
+                                   }
+                              }
+                         }
+                     }
+                 }
+             }
+         }
