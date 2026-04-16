@@ -16,6 +16,14 @@ pub struct GitHubContent {
     pub item_type: String, // "file" or "dir"
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct SkillIndexEntry {
+    pub name: String,
+    pub repository: String,
+    pub description: Option<String>,
+}
+
+
 pub struct GitHubFetcher {
     client: Client,
     auth_token: Option<String>,
@@ -172,8 +180,39 @@ impl GitHubFetcher {
     }
 
     /// Fetch all files for a specific skill from julwrites/agent-skills
+
+    /// Fetch external skills index
+    pub async fn get_external_skills_index(&self) -> Result<Vec<SkillIndexEntry>> {
+        let url = "https://raw.githubusercontent.com/julwrites/agent-bootstrap/main/.agents/registry/index.json";
+        let mut req = self.client.get(url);
+        if let Some(token) = &self.auth_token {
+            req = req.header(header::AUTHORIZATION, format!("token {}", token));
+        }
+        let response = req.send().await?;
+        if response.status().is_success() {
+            if let Ok(text) = response.text().await {
+                if let Ok(index) = serde_json::from_str::<Vec<SkillIndexEntry>>(&text) {
+                    return Ok(index);
+                }
+            }
+        }
+        Ok(Vec::new())
+    }
+
     pub async fn get_skill_files(&self, skill_name: &str) -> Result<Vec<(String, String)>> {
         let mut results = Vec::new();
+
+        // Check if it's an external skill
+        if let Ok(index) = self.get_external_skills_index().await {
+            if let Some(entry) = index.iter().find(|e| e.name == skill_name) {
+                // If it's an external skill, we don't fetch any files because they will be installed via bash.
+                // We just return an empty vector, or maybe a dummy file to indicate it was found.
+                // The prompt logic handles running the bash command based on `files` not being empty.
+                // Let's just return a dummy entry so the caller knows the skill exists and proceeds to install.
+                return Ok(vec![("external_skill".to_string(), entry.repository.clone())]);
+            }
+        }
+
         // In agent-skills, typically there is a folder for each skill, or markdown files.
         // We list the directory for the skill.
         let contents = self.list_contents("julwrites", "agent-skills", skill_name).await
@@ -191,12 +230,18 @@ impl GitHubFetcher {
 
     /// List available skills
     pub async fn list_skills(&self) -> Result<Vec<String>> {
-        let contents = self.list_contents("julwrites", "agent-skills", "").await?;
+        let contents = self.list_contents("julwrites", "agent-skills", "skills").await.unwrap_or_default();
         let mut skills = Vec::new();
 
         for item in contents {
             if item.item_type == "dir" && !item.name.starts_with('.') {
                 skills.push(item.name);
+            }
+        }
+
+        if let Ok(index) = self.get_external_skills_index().await {
+            for entry in index {
+                skills.push(entry.name);
             }
         }
 
