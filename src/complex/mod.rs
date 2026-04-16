@@ -19,6 +19,7 @@ pub async fn run_init(fetcher: &GitHubFetcher, output_file: Option<&str>) -> Res
     }
 
     prompt.push_str("Please review the existing files in the repository and update or create these files carefully, ensuring no important existing configuration is lost.\n");
+    prompt.push_str("\nAdditionally, please compare the local directories inside `skills/` against the updated agent-bootstrap index.json and prompt me to remove any outdated skills that no longer exist in the remote registry.\n");
 
     output_prompt(&prompt, output_file)?;
 
@@ -41,6 +42,7 @@ pub async fn run_uninstall(fetcher: &GitHubFetcher, skill: &str, output_file: Op
     }
 
     prompt.push_str("\nPlease ensure that removing these files or their references does not break the rest of the harness.\n");
+    prompt.push_str("\nAlso, run the appropriate bash uninstallation commands if their CLI tools are available (e.g. `claude plugin uninstall`, `gemini extensions uninstall`, `codex plugins uninstall`, `opencode plugins uninstall`).\n");
 
     output_prompt(&prompt, output_file)?;
 
@@ -69,6 +71,7 @@ pub async fn run_install(fetcher: &GitHubFetcher, skill: &str, output_file: Opti
     }
 
     prompt.push_str("Please adapt the configuration as necessary to fit this specific repository's structure and existing configuration.\n");
+    prompt.push_str("\nAlso, run the appropriate bash installation commands if their CLI tools are available (e.g. `claude plugin install`, `gemini install extension`, `codex plugins install`, `opencode plugins install`).\n");
 
     output_prompt(&prompt, output_file)?;
 
